@@ -2,3 +2,4 @@
 .env.production
 
 supabase/schema.sql
+.vercel
