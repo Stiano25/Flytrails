@@ -3,3 +3,8 @@
 
 supabase/schema.sql
 .vercel
+
+
+node_modules/
+dist/
+build/
