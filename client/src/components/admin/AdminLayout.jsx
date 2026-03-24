@@ -33,7 +33,11 @@ export default function AdminLayout() {
   const Sidebar = () => (
     <aside className="flex h-full w-60 flex-col bg-slate-900 text-white">
       <div className="flex items-center gap-3 border-b border-slate-700 px-6 py-5">
-        <span className="font-display text-lg font-bold text-accent">Flytrails</span>
+        <img 
+          src="/images/Flytrailslogo.png" 
+          alt="Flytrails Logo" 
+          className="h-6 w-auto brightness-0 invert" 
+        />
         <span className="rounded bg-slate-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-300">
           Admin
         </span>
@@ -104,7 +108,12 @@ export default function AdminLayout() {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <span className="font-display font-bold text-slate-800">Flytrails Admin</span>
+          <img 
+            src="/images/Flytrailslogo.png" 
+            alt="Flytrails Logo" 
+            className="h-5 w-auto" 
+          />
+          <span className="font-display font-bold text-slate-800">Admin</span>
         </div>
 
         <main className="flex-1 overflow-y-auto p-6 md:p-8">

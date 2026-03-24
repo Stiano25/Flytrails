@@ -63,56 +63,59 @@ export default function Trips() {
         subtitle="Filter by what matters — all pricing in KES per person."
       />
       <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-8 md:px-6">
-        <div className="glass-surface-strong flex flex-wrap items-end gap-4 rounded-3xl p-5 md:p-6">
-          <div className="mb-auto flex items-center gap-2 text-primary md:pr-4">
+        <div className="glass-surface-strong rounded-3xl p-4 md:p-6">
+          <div className="mb-4 flex items-center gap-2 text-primary">
             <SlidersHorizontal className="h-5 w-5 shrink-0" aria-hidden />
             <span className="font-display text-sm font-bold uppercase tracking-wide text-brand-dark">Filters</span>
           </div>
-          <label className="flex min-w-[140px] flex-col text-sm">
-            <span className={labelClass}>Category</span>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className={inputClass}
-            >
-              <option value="">All</option>
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex min-w-[140px] flex-col text-sm">
-            <span className={labelClass}>Duration</span>
-            <select value={duration} onChange={(e) => setDuration(e.target.value)} className={inputClass}>
-              <option value="">Any</option>
-              <option value="1-2">1–2 days</option>
-              <option value="3-5">3–5 days</option>
-              <option value="6+">6+ days</option>
-            </select>
-          </label>
-          <label className="flex min-w-[140px] flex-col text-sm">
-            <span className={labelClass}>Budget</span>
-            <select value={budget} onChange={(e) => setBudget(e.target.value)} className={inputClass}>
-              {budgetOptions.map((o) => (
-                <option key={o.value || 'any'} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex min-w-[140px] flex-col text-sm">
-            <span className={labelClass}>Difficulty</span>
-            <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className={inputClass}>
-              <option value="">Any</option>
-              {difficultyOptions.filter(Boolean).map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
-          </label>
+          
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+            <label className="flex flex-col text-sm">
+              <span className={labelClass}>Category</span>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className={inputClass}
+              >
+                <option value="">All</option>
+                {categories.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col text-sm">
+              <span className={labelClass}>Duration</span>
+              <select value={duration} onChange={(e) => setDuration(e.target.value)} className={inputClass}>
+                <option value="">Any</option>
+                <option value="1-2">1–2 days</option>
+                <option value="3-5">3–5 days</option>
+                <option value="6+">6+ days</option>
+              </select>
+            </label>
+            <label className="flex flex-col text-sm">
+              <span className={labelClass}>Budget</span>
+              <select value={budget} onChange={(e) => setBudget(e.target.value)} className={inputClass}>
+                {budgetOptions.map((o) => (
+                  <option key={o.value || 'any'} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col text-sm">
+              <span className={labelClass}>Difficulty</span>
+              <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className={inputClass}>
+                <option value="">Any</option>
+                {difficultyOptions.filter(Boolean).map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         </div>
 
         <p className="mt-8 text-sm font-light text-brand-dark/80">

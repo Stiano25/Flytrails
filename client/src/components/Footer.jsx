@@ -33,8 +33,11 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 md:px-6">
         <div className="mb-10 flex flex-col items-start gap-2 border-b border-white/10 pb-10">
           <div className="flex items-center gap-2">
-            <Mountain className="h-8 w-8 text-accent" strokeWidth={1.5} aria-hidden />
-            <span className="font-display text-2xl font-bold">Flytrails</span>
+            <img 
+              src="/images/Flytrailslogo.png" 
+              alt="Flytrails Logo" 
+              className="h-8 w-auto brightness-0 invert" 
+            />
           </div>
           <p className="text-sm font-light text-brand-light/80">Adventure awaits. Community travels.</p>
         </div>
@@ -139,7 +142,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 border-t border-white/10 pt-8">
-          <p className="text-center text-sm font-extralight text-brand-light/55">© 2025 Flytrails. All rights reserved.</p>
+          <p className="text-center text-sm font-extralight text-brand-light/55">© 2026 Flytrails. All rights reserved.</p>
         </div>
       </div>
     </footer>

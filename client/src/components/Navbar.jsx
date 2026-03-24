@@ -48,8 +48,11 @@ export default function Navbar() {
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6" aria-label="Main">
         <Link to="/" className="flex shrink-0 items-center gap-2 text-brand-dark">
-          <Mountain className="h-9 w-9 text-primary" strokeWidth={1.5} aria-hidden />
-          <span className="font-display text-xl font-bold tracking-tight md:text-2xl">Flytrails</span>
+          <img 
+            src="/images/Flytrailslogo.png" 
+            alt="Flytrails Logo" 
+            className="h-11 w-auto md:h-12" 
+          />
         </Link>
 
         <div className="hidden items-center gap-0.5 lg:flex">
