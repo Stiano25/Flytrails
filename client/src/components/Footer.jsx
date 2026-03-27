@@ -71,7 +71,7 @@ export default function Footer() {
 
           <div>
             <h3 className="font-display text-lg font-bold text-accent">Contact</h3>
-            <p className="mt-4 text-sm font-light text-brand-light/80">Nairobi, Kenya</p>
+            <p className="mt-3 text-sm font-light text-brand-light/80 mb-3">Nairobi, Kenya</p>
             <a href={`mailto:${SITE_EMAIL}`} className="block text-sm font-light text-brand-light/80 transition hover:text-accent">{SITE_EMAIL}</a>
             <a
               href={WHATSAPP_URL}
@@ -79,7 +79,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="mt-3 inline-flex items-center gap-2 font-medium text-accent transition hover:underline"
             >
-              <MessageCircle className="h-5 w-5" aria-hidden />
+              <MessageCircle className="h-4 w-4" aria-hidden />
               WhatsApp
             </a>
 
