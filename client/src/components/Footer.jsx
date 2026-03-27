@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mountain, Instagram, Facebook, MessageCircle, Video } from 'lucide-react';
-import { WHATSAPP_URL } from '../config.js';
+import { WHATSAPP_URL, SITE_EMAIL } from '../config.js';
 
 const quickLinks = [
   { to: '/trips', label: 'All Trips' },
@@ -72,7 +72,7 @@ export default function Footer() {
           <div>
             <h3 className="font-display text-lg font-bold text-accent">Contact</h3>
             <p className="mt-4 text-sm font-light text-brand-light/80">Nairobi, Kenya</p>
-            <p className="text-sm font-light text-brand-light/80">hello@flytrails.com</p>
+            <a href={`mailto:${SITE_EMAIL}`} className="text-sm font-light text-brand-light/80 transition hover:text-accent">{SITE_EMAIL}</a>
             <a
               href={WHATSAPP_URL}
               target="_blank"
