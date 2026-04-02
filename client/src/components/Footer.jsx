@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mountain, Instagram, Facebook, MessageCircle, Video } from 'lucide-react';
-import { WHATSAPP_URL, SITE_EMAIL } from '../config.js';
+import { SITE_EMAIL } from '../config.js';
+import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
 
 const quickLinks = [
   { to: '/trips', label: 'All Trips' },

@@ -103,7 +103,7 @@ export default function HeroCarousel() {
                 reducedMotion ? '' : 'animate-video-effect'
               }`}
               decoding="async"
-              fetchPriority="high"
+              fetchpriority="high"
               referrerPolicy="no-referrer-when-downgrade"
             />
           </motion.div>
