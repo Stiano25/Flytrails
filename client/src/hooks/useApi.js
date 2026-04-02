@@ -66,6 +66,14 @@ export function useBlogPost(slug) {
   return useApi(() => api.getBlogPost(slug), [slug]);
 }
 
+export function useAccommodations() {
+  return useApi(() => api.getAccommodations(), []);
+}
+
+export function useAccommodation(slug) {
+  return useApi(() => api.getAccommodation(slug), [slug]);
+}
+
 export function useSiteContent() {
   return useApi(() => api.getSiteContent(), []);
 }

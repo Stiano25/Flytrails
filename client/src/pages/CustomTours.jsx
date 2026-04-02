@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { WHATSAPP_URL } from '../config.js';
 import { Building2, Users, UserRound, Heart, CarFront, MessageCircle } from 'lucide-react';
+import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
 
 const services = [
   {
@@ -45,6 +45,7 @@ export default function CustomTours() {
     budget: '',
     requests: '',
   });
+  const whatsappHref = useWhatsappLink();
 
   function handleChange(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -157,7 +158,7 @@ export default function CustomTours() {
         <div className="mt-10 text-center">
           <p className="font-light text-brand-dark/80">Prefer to chat?</p>
           <a
-            href={WHATSAPP_URL}
+            href={whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-8 py-3 font-bold text-white shadow-md transition hover:opacity-95"

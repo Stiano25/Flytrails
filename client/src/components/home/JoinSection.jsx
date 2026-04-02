@@ -7,6 +7,7 @@ import {
   Waves,
   Globe,
   Users,
+  Utensils,
 } from 'lucide-react';
 
 const joinOptions = [
@@ -41,6 +42,12 @@ const joinOptions = [
     Icon: Globe,
   },
   {
+    label: 'Halal friendly tours',
+    sub: 'Halal-friendly stays & dining',
+    query: 'Halal Trips',
+    Icon: Utensils,
+  },
+  {
     label: 'In women-only groups',
     sub: 'Curated trips',
     query: 'Women-Only',
@@ -71,7 +78,7 @@ export default function JoinSection() {
           </p>
         </motion.div>
 
-        <ul className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6 lg:gap-4">
+        <ul className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 lg:gap-4">
           {joinOptions.map(({ label, sub, query, Icon }, index) => (
             <motion.li
               key={label}

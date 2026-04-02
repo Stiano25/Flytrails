@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar.jsx';
 import Footer from './Footer.jsx';
 import PageTransition from './PageTransition.jsx';
+import WhatsAppFloatingButton from './WhatsAppFloatingButton.jsx';
 
 export default function Layout() {
   return (
@@ -13,6 +14,7 @@ export default function Layout() {
         </PageTransition>
       </main>
       <Footer />
+      <WhatsAppFloatingButton />
     </div>
   );
 }

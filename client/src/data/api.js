@@ -53,6 +53,26 @@ function mapBlogPost(row) {
   };
 }
 
+function mapAccommodation(row) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    location: row.location,
+    shortDescription: row.short_description || '',
+    description: row.description || '',
+    image: row.image_url || '',
+    priceFrom: row.price_from ?? 0,
+    amenities: row.amenities || [],
+    rating: row.rating ?? null,
+    gallery: row.gallery || [],
+    bookingWhatsapp: row.booking_whatsapp || '',
+    bookingLink: row.booking_link || '',
+    isActive: row.is_active,
+    sortOrder: row.sort_order ?? 0,
+  };
+}
+
 // ── API ─────────────────────────────────────────────────────────
 export const api = {
   async getTrips(filters = {}) {
@@ -119,6 +139,29 @@ export const api = {
 
     if (error) throw new Error('Blog post not found');
     return { data: mapBlogPost(data), success: true };
+  },
+
+  async getAccommodations() {
+    const { data, error } = await supabase
+      .from('accommodations')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
+
+    if (error) throw new Error(error.message);
+    return { data: (data || []).map(mapAccommodation), total: data?.length || 0, success: true };
+  },
+
+  async getAccommodation(slug) {
+    const { data, error } = await supabase
+      .from('accommodations')
+      .select('*')
+      .eq('slug', slug)
+      .eq('is_active', true)
+      .single();
+
+    if (error) throw new Error('Accommodation not found');
+    return { data: mapAccommodation(data), success: true };
   },
 
   async getSiteContent() {
@@ -302,6 +345,60 @@ export const adminApi = {
       .upload(filename, file, { cacheControl: '3600', upsert: false });
     if (error) throw new Error(error.message);
     const { data: { publicUrl } } = supabase.storage.from('trips').getPublicUrl(filename);
+    return publicUrl;
+  },
+
+  // --- Accommodations ---
+  async getAllAccommodations() {
+    const { data, error } = await supabase
+      .from('accommodations')
+      .select('*')
+      .order('sort_order', { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data || []).map(mapAccommodation);
+  },
+
+  async upsertAccommodation(accommodation) {
+    const row = {
+      slug: accommodation.slug,
+      title: accommodation.title,
+      location: accommodation.location,
+      short_description: accommodation.shortDescription || null,
+      description: accommodation.description || null,
+      image_url: accommodation.image || null,
+      price_from: Number(accommodation.priceFrom) || 0,
+      amenities: accommodation.amenities || [],
+      rating: accommodation.rating === '' || accommodation.rating == null ? null : Number(accommodation.rating),
+      gallery: accommodation.gallery || [],
+      booking_whatsapp: accommodation.bookingWhatsapp || null,
+      booking_link: accommodation.bookingLink || null,
+      is_active: accommodation.isActive !== false,
+      sort_order: Number(accommodation.sortOrder) || 0,
+    };
+    if (accommodation.id) row.id = accommodation.id;
+
+    const { data, error } = await supabase
+      .from('accommodations')
+      .upsert(row, { onConflict: 'id' })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return mapAccommodation(data);
+  },
+
+  async deleteAccommodation(id) {
+    const { error } = await supabase.from('accommodations').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  },
+
+  async uploadAccommodationImage(file) {
+    const ext = file.name.split('.').pop();
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage
+      .from('accommodations')
+      .upload(filename, file, { cacheControl: '3600', upsert: false });
+    if (error) throw new Error(error.message);
+    const { data: { publicUrl } } = supabase.storage.from('accommodations').getPublicUrl(filename);
     return publicUrl;
   },
 

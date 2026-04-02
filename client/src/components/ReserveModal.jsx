@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { X, MessageCircle } from 'lucide-react';
-import { WHATSAPP_URL } from '../config.js';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
+import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
 
 export default function ReserveModal({ open, onClose, tripTitle }) {
   const focusTrapRef = useFocusTrap(open);
+  const whatsappHref = useWhatsappLink();
 
   useEffect(() => {
     if (!open) return;
@@ -50,7 +51,7 @@ export default function ReserveModal({ open, onClose, tripTitle }) {
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <a
-            href={WHATSAPP_URL}
+            href={whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-center text-sm font-bold text-accent shadow-md"

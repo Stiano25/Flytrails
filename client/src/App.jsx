@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react';
 import Layout from './components/Layout.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import LoadingSpinner from './components/LoadingSpinner.jsx';
+import GlobalAlertModal from './components/GlobalAlertModal.jsx';
 import Home from './pages/Home.jsx';
 import { AuthProvider } from './lib/AuthContext.jsx';
 import ProtectedRoute from './components/admin/ProtectedRoute.jsx';
@@ -10,6 +11,8 @@ import AdminLayout from './components/admin/AdminLayout.jsx';
 
 // Public pages (lazy loaded)
 const Trips = lazy(() => import('./pages/Trips.jsx'));
+const Accommodations = lazy(() => import('./pages/Accommodations.jsx'));
+const AccommodationDetail = lazy(() => import('./pages/AccommodationDetail.jsx'));
 const TripDetail = lazy(() => import('./pages/TripDetail.jsx'));
 const UpcomingTrips = lazy(() => import('./pages/UpcomingTrips.jsx'));
 const CustomTours = lazy(() => import('./pages/CustomTours.jsx'));
@@ -26,6 +29,7 @@ const Login = lazy(() => import('./pages/admin/Login.jsx'));
 const Dashboard = lazy(() => import('./pages/admin/Dashboard.jsx'));
 const GalleryAdmin = lazy(() => import('./pages/admin/GalleryAdmin.jsx'));
 const TripsAdmin = lazy(() => import('./pages/admin/TripsAdmin.jsx'));
+const AccommodationsAdmin = lazy(() => import('./pages/admin/AccommodationsAdmin.jsx'));
 const BlogAdmin = lazy(() => import('./pages/admin/BlogAdmin.jsx'));
 const SiteContent = lazy(() => import('./pages/admin/SiteContent.jsx'));
 
@@ -46,6 +50,8 @@ export default function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="trips" element={<Suspense fallback={<PageLoader />}><Trips /></Suspense>} />
+            <Route path="accommodations" element={<Suspense fallback={<PageLoader />}><Accommodations /></Suspense>} />
+            <Route path="accommodations/:slug" element={<Suspense fallback={<PageLoader />}><AccommodationDetail /></Suspense>} />
             <Route path="trips/:slug" element={<Suspense fallback={<PageLoader />}><TripDetail /></Suspense>} />
             <Route path="upcoming-trips" element={<Suspense fallback={<PageLoader />}><UpcomingTrips /></Suspense>} />
             <Route path="custom-tours" element={<Suspense fallback={<PageLoader />}><CustomTours /></Suspense>} />
@@ -75,10 +81,12 @@ export default function App() {
             <Route index element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
             <Route path="gallery" element={<Suspense fallback={<PageLoader />}><GalleryAdmin /></Suspense>} />
             <Route path="trips" element={<Suspense fallback={<PageLoader />}><TripsAdmin /></Suspense>} />
+            <Route path="accommodations" element={<Suspense fallback={<PageLoader />}><AccommodationsAdmin /></Suspense>} />
             <Route path="blog" element={<Suspense fallback={<PageLoader />}><BlogAdmin /></Suspense>} />
             <Route path="content" element={<Suspense fallback={<PageLoader />}><SiteContent /></Suspense>} />
           </Route>
         </Routes>
+        <GlobalAlertModal />
       </ErrorBoundary>
     </AuthProvider>
   );

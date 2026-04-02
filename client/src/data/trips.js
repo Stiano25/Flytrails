@@ -207,7 +207,7 @@ export const trips = [
     slug: 'dubai-weekender',
     title: 'Dubai Weekender',
     location: 'Dubai, UAE',
-    category: 'Halal',
+    category: 'Halal Trips',
     duration: '5 days',
     price: 185000,
     spotsTotal: 16,
@@ -231,7 +231,7 @@ export const trips = [
   },
 ];
 
-export const categories = ['Hiking', 'Beach', 'Safari', 'International', 'Halal', 'Women-Only'];
+export const categories = ['Hiking', 'Beach', 'Safari', 'International', 'Halal Trips', 'Women-Only'];
 
 export function getTripBySlug(slug) {
   return trips.find((t) => t.slug === slug);

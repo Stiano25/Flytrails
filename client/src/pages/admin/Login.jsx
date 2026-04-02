@@ -28,9 +28,13 @@ export default function Login() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-900 p-4">
       <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <h1 className="font-display text-3xl font-bold text-white">Flytrails</h1>
-          <p className="mt-2 text-slate-400">Admin — sign in to continue</p>
+        <div className="mb-8 flex flex-col items-center text-center">
+          <img
+            src="/images/flytrailsnewlogo.png"
+            alt="Flytrails"
+            className="h-12 w-auto max-w-[240px] object-contain md:h-14"
+          />
+          <p className="mt-4 text-slate-400">Admin — sign in to continue</p>
         </div>
 
         <form

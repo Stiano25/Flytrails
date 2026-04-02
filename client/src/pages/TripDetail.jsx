@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useTrip } from '../hooks/useApi.js';
 import ReserveModal from '../components/ReserveModal.jsx';
-import { WHATSAPP_URL } from '../config.js';
+import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
 
 function formatKes(n) {
   return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', maximumFractionDigits: 0 }).format(n);
@@ -29,6 +29,7 @@ export default function TripDetail() {
   const [openDay, setOpenDay] = useState(0);
   const [openFaq, setOpenFaq] = useState(null);
   const [reserveOpen, setReserveOpen] = useState(false);
+  const whatsappHref = useWhatsappLink();
 
   if (!loading && (error || !trip)) {
     return <Navigate to="/404" replace />;
@@ -223,7 +224,7 @@ export default function TripDetail() {
               Ask a question
             </Link>
             <a
-              href={WHATSAPP_URL}
+              href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-4 flex items-center justify-center gap-2 text-center text-sm font-semibold text-primary hover:underline"

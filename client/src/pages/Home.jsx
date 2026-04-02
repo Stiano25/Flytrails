@@ -5,7 +5,7 @@ import HeroCarousel from '../components/home/HeroCarousel.jsx';
 import JoinSection from '../components/home/JoinSection.jsx';
 import PopularAdventureCard from '../components/home/PopularAdventureCard.jsx';
 import { pageHeroImages } from '../data/pageHeroImages.js';
-import { useSubmit, useTrips, useGalleryImages } from '../hooks/useApi.js';
+import { useSubmit, useTrips, useGalleryImages, useAccommodations } from '../hooks/useApi.js';
 import { api } from '../data/api.js';
 
 const clubs = [
@@ -65,8 +65,10 @@ export default function Home() {
   const { submit: submitNewsletter, loading: newsletterLoading } = useSubmit();
   const { data: tripsData } = useTrips();
   const { data: galleryData } = useGalleryImages();
+  const { data: accommodationsData } = useAccommodations();
   const popular = (tripsData || []).slice(0, 6);
   const moments = (galleryData || []).slice(0, 9);
+  const featuredAccommodations = (accommodationsData || []).slice(0, 3);
 
   const handleNewsletterSubmit = async (e) => {
     e.preventDefault();
@@ -156,6 +158,55 @@ export default function Home() {
               <span>Request custom trip</span>
             </Link>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Accommodations preview */}
+      <section className="bg-white py-12 sm:py-16 md:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-5 md:px-6">
+          <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+            <div className="min-w-0">
+              <h2 className="font-display text-2xl font-bold text-brand-dark sm:text-3xl md:text-4xl">Accommodations</h2>
+              <p className="mt-2 max-w-xl text-sm text-brand-dark/70 sm:text-base">Handpicked stays to match your travel style.</p>
+            </div>
+            <Link
+              to="/accommodations"
+              className="inline-flex shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/10 sm:py-2"
+            >
+              View all stays
+            </Link>
+          </div>
+          {featuredAccommodations.length === 0 ? (
+            <p className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5 text-sm text-brand-dark/60 sm:p-6">
+              Accommodations will appear here once added by admin.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
+              {featuredAccommodations.map((item) => (
+                <Link
+                  key={item.id}
+                  to={`/accommodations/${item.slug}`}
+                  className="group block overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:border-primary/20 hover:shadow-md"
+                >
+                  {item.image && (
+                    <div className="aspect-[4/3] w-full overflow-hidden bg-neutral-100">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
+                  <div className="p-4 sm:p-5">
+                    <h3 className="line-clamp-2 font-semibold leading-snug text-brand-dark group-hover:text-primary">{item.title}</h3>
+                    <p className="mt-1 text-sm text-brand-dark/70">{item.location}</p>
+                    <p className="mt-2 line-clamp-2 text-sm text-brand-dark/75">{item.shortDescription || item.description}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

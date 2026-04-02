@@ -6,6 +6,7 @@ import {
   Map,
   BookOpen,
   FileText,
+  Building2,
   LogOut,
   Menu,
   X,
@@ -16,6 +17,7 @@ const navItems = [
   { to: '/admin',          label: 'Dashboard',    icon: LayoutDashboard, end: true },
   { to: '/admin/gallery',  label: 'Gallery',       icon: Images },
   { to: '/admin/trips',    label: 'Trips',         icon: Map },
+  { to: '/admin/accommodations', label: 'Accommodations', icon: Building2 },
   { to: '/admin/blog',     label: 'Blog',          icon: BookOpen },
   { to: '/admin/content',  label: 'Site Content',  icon: FileText },
 ];
@@ -34,9 +36,9 @@ export default function AdminLayout() {
     <aside className="flex h-full w-60 flex-col bg-slate-900 text-white">
       <div className="flex items-center gap-3 border-b border-slate-700 px-6 py-5">
         <img 
-          src="/images/Flytrailslogo.png" 
+          src="/images/flytrailsnewlogo.png"
           alt="Flytrails Logo" 
-          className="h-6 w-auto brightness-0 invert" 
+          className="h-6 w-auto max-w-[140px] object-contain object-left"
         />
         <span className="rounded bg-slate-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-300">
           Admin
@@ -109,7 +111,7 @@ export default function AdminLayout() {
             <Menu className="h-5 w-5" />
           </button>
           <img 
-            src="/images/Flytrailslogo.png" 
+            src="/images/flytrailsnewlogo.png"
             alt="Flytrails Logo" 
             className="h-5 w-auto" 
           />

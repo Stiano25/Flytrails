@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mountain, Instagram, Facebook, MessageCircle, Video } from 'lucide-react';
-import { WHATSAPP_URL } from '../config.js';
+import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
 
 const quickLinks = [
   { to: '/trips', label: 'All Trips' },
+  { to: '/accommodations', label: 'Accommodations' },
   { to: '/upcoming-trips', label: 'Upcoming' },
   { to: '/membership', label: 'Membership' },
   { to: '/contact', label: 'Contact' },
@@ -15,11 +16,13 @@ const categories = [
   { to: '/trips?category=Beach', label: 'Beach' },
   { to: '/trips?category=Safari', label: 'Safari' },
   { to: '/trips?category=International', label: 'International' },
+  { to: '/trips?category=Halal Trips', label: 'Halal Trips' },
 ];
 
 export default function Footer() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const whatsappHref = useWhatsappLink();
 
   function handleNewsletter(e) {
     e.preventDefault();
@@ -34,9 +37,9 @@ export default function Footer() {
         <div className="mb-10 flex flex-col items-start gap-2 border-b border-white/10 pb-10">
           <div className="flex items-center gap-2">
             <img 
-              src="/images/Flytrailslogo.png" 
+              src="/images/flytrailsnewlogo.png"
               alt="Flytrails Logo" 
-              className="h-8 w-auto brightness-0 invert" 
+              className="h-8 w-auto max-w-[200px] object-contain object-left"
             />
           </div>
           <p className="text-sm font-light text-brand-light/80">Adventure awaits. Community travels.</p>
@@ -74,7 +77,7 @@ export default function Footer() {
             <p className="mt-4 text-sm font-light text-brand-light/80">Nairobi, Kenya</p>
             <p className="text-sm font-light text-brand-light/80">hello@flytrails.com</p>
             <a
-              href={WHATSAPP_URL}
+              href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-3 inline-flex items-center gap-2 font-medium text-accent transition hover:underline"
