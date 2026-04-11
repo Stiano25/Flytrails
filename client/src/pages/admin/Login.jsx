@@ -90,10 +90,6 @@ export default function Login() {
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
-
-        <p className="mt-6 text-center text-xs text-slate-600">
-          Set up your admin user in Supabase Auth → Users
-        </p>
       </div>
     </div>
   );

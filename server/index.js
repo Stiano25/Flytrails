@@ -1,16 +1,12 @@
-import dotenv from 'dotenv';
+import './loadEnv.js';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { sendContactMail } from './contactMail.js';
+import { adminRouter } from './adminRoutes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const __root = path.join(__dirname, '..');
-dotenv.config({ path: path.join(__root, '.env') });
-if (process.env.NODE_ENV !== 'production') {
-  dotenv.config({ path: path.join(__root, '.env.local'), override: true });
-  dotenv.config({ path: path.join(__root, '.env.development'), override: true });
-}
 const app = express();
 const PORT = process.env.PORT || 5000;
 const isProd = process.env.NODE_ENV === 'production';
@@ -20,6 +16,8 @@ app.use(express.json({ limit: '32kb' }));
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', name: 'Flytrails API' });
 });
+
+app.use('/api/admin', adminRouter);
 
 app.post('/api/contact', async (req, res) => {
   const { name, email, phone, subject, message } = req.body || {};
