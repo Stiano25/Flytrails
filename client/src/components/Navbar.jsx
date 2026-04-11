@@ -55,15 +55,17 @@ function Dropdown({ label, items, openMenu, setOpenMenu }) {
         <ChevronDown className={`h-4 w-4 transition ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-2 w-60 rounded-2xl border border-white/40 bg-white/90 p-2 shadow-xl backdrop-blur-xl">
-          {items.map(({ to, label: itemLabel, Icon }) => (
-            <NavLink key={to} to={to} className="block rounded-xl px-3 py-2.5 text-sm text-neutral-700 transition hover:bg-primary/10 hover:text-primary">
-              <span className="flex items-center gap-2">
-                <Icon className="h-4 w-4" />
-                {itemLabel}
-              </span>
-            </NavLink>
-          ))}
+        <div className="absolute left-0 top-full z-50 w-60 pt-2" role="presentation">
+          <div className="rounded-2xl border border-white/40 bg-white/90 p-2 shadow-xl backdrop-blur-xl">
+            {items.map(({ to, label: itemLabel, Icon }) => (
+              <NavLink key={to} to={to} className="block rounded-xl px-3 py-2.5 text-sm text-neutral-700 transition hover:bg-primary/10 hover:text-primary">
+                <span className="flex items-center gap-2">
+                  <Icon className="h-4 w-4" />
+                  {itemLabel}
+                </span>
+              </NavLink>
+            ))}
+          </div>
         </div>
       )}
     </div>

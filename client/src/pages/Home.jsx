@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import HeroCarousel from '../components/home/HeroCarousel.jsx';
 import JoinSection from '../components/home/JoinSection.jsx';
+import TestimonialsSection from '../components/home/TestimonialsSection.jsx';
 import PopularAdventureCard from '../components/home/PopularAdventureCard.jsx';
 import { pageHeroImages } from '../data/pageHeroImages.js';
 import { useSubmit, useTrips, useGalleryImages, useAccommodations } from '../hooks/useApi.js';
@@ -88,6 +89,7 @@ export default function Home() {
     <>
       <HeroCarousel />
       <JoinSection />
+      <TestimonialsSection />
 
       {/* These are the popular ones */}
       <section className="relative py-20 md:py-28 overflow-hidden">

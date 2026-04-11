@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { adminApi } from '../../data/api.js';
-import { Images, Map, BookOpen, FileText, ArrowRight } from 'lucide-react';
+import { Images, Map, BookOpen, FileText, ArrowRight, MessageSquareQuote } from 'lucide-react';
 
 function StatCard({ label, value, icon: Icon, to, color }) {
   return (
@@ -22,15 +22,21 @@ function StatCard({ label, value, icon: Icon, to, color }) {
 }
 
 export default function Dashboard() {
-  const [counts, setCounts] = useState({ trips: null, gallery: null, blog: null });
+  const [counts, setCounts] = useState({ trips: null, gallery: null, blog: null, testimonials: null });
 
   useEffect(() => {
     Promise.all([
       adminApi.getAllTrips(),
       adminApi.getAllGalleryImages(),
       adminApi.getAllBlogPosts(),
-    ]).then(([trips, gallery, blog]) => {
-      setCounts({ trips: trips.length, gallery: gallery.length, blog: blog.length });
+      adminApi.getAllTestimonials(),
+    ]).then(([trips, gallery, blog, testimonials]) => {
+      setCounts({
+        trips: trips.length,
+        gallery: gallery.length,
+        blog: blog.length,
+        testimonials: testimonials.length,
+      });
     }).catch(console.error);
   }, []);
 
@@ -41,7 +47,7 @@ export default function Dashboard() {
         <p className="mt-2 text-slate-600">Welcome back — manage your site content below.</p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 md:gap-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 md:gap-4">
         <StatCard
           label="Trips"
           value={counts.trips}
@@ -64,6 +70,13 @@ export default function Dashboard() {
           color="bg-violet-50 text-violet-600"
         />
         <StatCard
+          label="Testimonials"
+          value={counts.testimonials}
+          icon={MessageSquareQuote}
+          to="/admin/testimonials"
+          color="bg-rose-50 text-rose-600"
+        />
+        <StatCard
           label="Site content"
           value="Edit"
           icon={FileText}
@@ -77,6 +90,7 @@ export default function Dashboard() {
           { to: '/admin/gallery', label: 'Upload gallery images', icon: Images, desc: 'Add or remove photos from the gallery.' },
           { to: '/admin/trips', label: 'Add a new trip', icon: Map, desc: 'Create a trip listing with all details.' },
           { to: '/admin/blog', label: 'Write a blog post', icon: BookOpen, desc: 'Publish guides and travel tips.' },
+          { to: '/admin/testimonials', label: 'Add a testimonial', icon: MessageSquareQuote, desc: 'Show traveler quotes on the home page.' },
           { to: '/admin/content', label: 'Edit page texts', icon: FileText, desc: 'Update headlines, contact info, and more.' },
         ].map(({ to, label, icon: Icon, desc }) => (
           <Link

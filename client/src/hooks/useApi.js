@@ -78,6 +78,10 @@ export function useSiteContent() {
   return useApi(() => api.getSiteContent(), []);
 }
 
+export function useTestimonials() {
+  return useApi(() => api.getTestimonials(), []);
+}
+
 // Hook for form submissions
 export function useSubmit() {
   const [loading, setLoading] = useState(false);

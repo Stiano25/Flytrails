@@ -7,9 +7,9 @@ import {
   BookOpen,
   FileText,
   Building2,
+  MessageSquareQuote,
   LogOut,
   Menu,
-  X,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -19,6 +19,7 @@ const navItems = [
   { to: '/admin/trips',    label: 'Trips',         icon: Map },
   { to: '/admin/accommodations', label: 'Accommodations', icon: Building2 },
   { to: '/admin/blog',     label: 'Blog',          icon: BookOpen },
+  { to: '/admin/testimonials', label: 'Testimonials', icon: MessageSquareQuote },
   { to: '/admin/content',  label: 'Site Content',  icon: FileText },
 ];
 

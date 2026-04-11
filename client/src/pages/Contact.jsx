@@ -10,13 +10,15 @@ import {
 import { pageHeroImages } from '../data/pageHeroImages.js';
 import PageHero from '../components/PageHero.jsx';
 import Toast from '../components/Toast.jsx';
-import { useSiteContent } from '../hooks/useApi.js';
+import { useSiteContent, useSubmit } from '../hooks/useApi.js';
+import { api } from '../data/api.js';
 
 const fieldClass = 'glass-input mt-1.5 w-full';
 const labelClass = 'text-xs font-bold uppercase tracking-wider text-brand-dark/70';
 
 export default function Contact() {
-  const [toast, setToast] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: '', variant: 'success' });
+  const { submit, loading } = useSubmit();
   const { data: content } = useSiteContent();
 
   const phone = content?.contact_phone || SITE_PHONE_DISPLAY;
@@ -26,15 +28,40 @@ export default function Contact() {
   const whatsappHref = whatsappNum ? `https://wa.me/${whatsappNum}` : WHATSAPP_URL;
 
   useEffect(() => {
-    if (!toast) return;
-    const t = setTimeout(() => setToast(false), 4500);
+    if (!toast.show) return;
+    const t = setTimeout(() => setToast((s) => ({ ...s, show: false })), 5500);
     return () => clearTimeout(t);
-  }, [toast]);
+  }, [toast.show]);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    setToast(true);
-    e.target.reset();
+    const fd = new FormData(e.target);
+    const result = await submit(() =>
+      api.submitContact({
+        name: String(fd.get('name') || '').trim(),
+        email: String(fd.get('email') || '').trim(),
+        phone: String(fd.get('phone') || '').trim(),
+        subject: String(fd.get('subject') || '').trim(),
+        message: String(fd.get('message') || '').trim(),
+      }),
+    );
+
+    if (result.success) {
+      e.target.reset();
+      setToast({
+        show: true,
+        variant: 'success',
+        message: "Message sent — we'll get back to you soon.",
+      });
+    } else {
+      setToast({
+        show: true,
+        variant: 'error',
+        message:
+          result.error ||
+          `Something went wrong. You can also email us at ${SITE_EMAIL}.`,
+      });
+    }
   }
 
   return (
@@ -72,9 +99,10 @@ export default function Contact() {
             </label>
             <button
               type="submit"
-              className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-accent shadow-md transition hover:bg-primary/90"
+              disabled={loading}
+              className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-accent shadow-md transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Send message
+              {loading ? 'Sending…' : 'Send message'}
             </button>
           </form>
 
@@ -149,7 +177,12 @@ export default function Contact() {
         </figure>
       </div>
 
-      <Toast message="Message sent — we'll get back to you soon." show={toast} onClose={() => setToast(false)} />
+      <Toast
+        message={toast.message}
+        show={toast.show}
+        variant={toast.variant}
+        onClose={() => setToast((s) => ({ ...s, show: false }))}
+      />
     </div>
   );
 }

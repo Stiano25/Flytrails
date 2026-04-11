@@ -32,6 +32,7 @@ const TripsAdmin = lazy(() => import('./pages/admin/TripsAdmin.jsx'));
 const AccommodationsAdmin = lazy(() => import('./pages/admin/AccommodationsAdmin.jsx'));
 const BlogAdmin = lazy(() => import('./pages/admin/BlogAdmin.jsx'));
 const SiteContent = lazy(() => import('./pages/admin/SiteContent.jsx'));
+const TestimonialsAdmin = lazy(() => import('./pages/admin/TestimonialsAdmin.jsx'));
 
 function PageLoader() {
   return (
@@ -84,6 +85,7 @@ export default function App() {
             <Route path="accommodations" element={<Suspense fallback={<PageLoader />}><AccommodationsAdmin /></Suspense>} />
             <Route path="blog" element={<Suspense fallback={<PageLoader />}><BlogAdmin /></Suspense>} />
             <Route path="content" element={<Suspense fallback={<PageLoader />}><SiteContent /></Suspense>} />
+            <Route path="testimonials" element={<Suspense fallback={<PageLoader />}><TestimonialsAdmin /></Suspense>} />
           </Route>
         </Routes>
         <GlobalAlertModal />

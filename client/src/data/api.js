@@ -73,6 +73,18 @@ function mapAccommodation(row) {
   };
 }
 
+function mapTestimonial(row) {
+  return {
+    id: row.id,
+    quote: row.quote,
+    authorName: row.author_name,
+    authorDetail: row.author_detail || '',
+    authorImageUrl: row.author_image_url || '',
+    isActive: row.is_active,
+    sortOrder: row.sort_order ?? 0,
+  };
+}
+
 // ── API ─────────────────────────────────────────────────────────
 export const api = {
   async getTrips(filters = {}) {
@@ -177,16 +189,41 @@ export const api = {
     return { data: map, success: true };
   },
 
+  async getTestimonials() {
+    const { data, error } = await supabase
+      .from('testimonials')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return { data: (data || []).map(mapTestimonial), total: data?.length || 0, success: true };
+  },
+
   async subscribeNewsletter(email) {
     // TODO: connect to email service (Resend, Mailchimp, etc.)
     console.log('Newsletter subscription for:', email);
     return { success: true, message: 'Successfully subscribed to newsletter' };
   },
 
-  async submitContact(formData) {
-    // TODO: connect to email service or Supabase edge function
-    console.log('Contact form submission:', formData);
-    return { success: true, message: 'Message sent successfully' };
+  async submitContact({ name, email, phone, subject, message }) {
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, phone: phone || '', subject, message }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (res.status === 404) {
+        throw new Error(
+          data.error ||
+            'Contact service not found. Run npm run dev (API + Vite together), or start the API with npm run dev:server. For vite preview, run the API on port 5000 in another terminal.',
+        );
+      }
+      throw new Error(data.error || 'Failed to send message');
+    }
+    return { success: true, message: data.message || 'Message sent successfully' };
   },
 };
 
@@ -399,6 +436,61 @@ export const adminApi = {
       .upload(filename, file, { cacheControl: '3600', upsert: false });
     if (error) throw new Error(error.message);
     const { data: { publicUrl } } = supabase.storage.from('accommodations').getPublicUrl(filename);
+    return publicUrl;
+  },
+
+  // --- Testimonials ---
+  async getAllTestimonials() {
+    const { data, error } = await supabase
+      .from('testimonials')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data || []).map(mapTestimonial);
+  },
+
+  async upsertTestimonial(t) {
+    const row = {
+      quote: t.quote,
+      author_name: t.authorName,
+      author_detail: t.authorDetail || null,
+      author_image_url: t.authorImageUrl || null,
+      is_active: t.isActive !== false,
+      sort_order: Number(t.sortOrder) || 0,
+    };
+    if (t.id) row.id = t.id;
+
+    const { data, error } = await supabase
+      .from('testimonials')
+      .upsert(row, { onConflict: 'id' })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return mapTestimonial(data);
+  },
+
+  async deleteTestimonial(id) {
+    const { error } = await supabase.from('testimonials').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  },
+
+  /** Uploads author photo to Storage (public testimonials bucket). Max 10 MB, images only. */
+  async uploadTestimonialPhoto(file) {
+    const maxBytes = 10 * 1024 * 1024;
+    if (!file || !file.size) throw new Error('Please choose an image file.');
+    if (file.size > maxBytes) throw new Error('Image must be 10 MB or smaller.');
+    if (!file.type.startsWith('image/')) throw new Error('File must be an image (JPEG, PNG, WebP, GIF, or AVIF).');
+
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+    const { error } = await supabase.storage
+      .from('testimonials')
+      .upload(filename, file, { cacheControl: '3600', upsert: false });
+    if (error) throw new Error(error.message);
+
+    const { data: { publicUrl } } = supabase.storage.from('testimonials').getPublicUrl(filename);
     return publicUrl;
   },
 
