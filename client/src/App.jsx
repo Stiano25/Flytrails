@@ -7,6 +7,7 @@ import GlobalAlertModal from './components/GlobalAlertModal.jsx';
 import Home from './pages/Home.jsx';
 import { AuthProvider } from './lib/AuthContext.jsx';
 import ProtectedRoute from './components/admin/ProtectedRoute.jsx';
+import SuperAdminRoute from './components/admin/SuperAdminRoute.jsx';
 import AdminLayout from './components/admin/AdminLayout.jsx';
 
 // Public pages (lazy loaded)
@@ -33,6 +34,8 @@ const AccommodationsAdmin = lazy(() => import('./pages/admin/AccommodationsAdmin
 const BlogAdmin = lazy(() => import('./pages/admin/BlogAdmin.jsx'));
 const SiteContent = lazy(() => import('./pages/admin/SiteContent.jsx'));
 const TestimonialsAdmin = lazy(() => import('./pages/admin/TestimonialsAdmin.jsx'));
+const UsersAdmin = lazy(() => import('./pages/admin/UsersAdmin.jsx'));
+const Account = lazy(() => import('./pages/admin/Account.jsx'));
 
 function PageLoader() {
   return (
@@ -86,6 +89,17 @@ export default function App() {
             <Route path="blog" element={<Suspense fallback={<PageLoader />}><BlogAdmin /></Suspense>} />
             <Route path="content" element={<Suspense fallback={<PageLoader />}><SiteContent /></Suspense>} />
             <Route path="testimonials" element={<Suspense fallback={<PageLoader />}><TestimonialsAdmin /></Suspense>} />
+            <Route
+              path="users"
+              element={
+                <Suspense fallback={<PageLoader />}>
+                  <SuperAdminRoute>
+                    <UsersAdmin />
+                  </SuperAdminRoute>
+                </Suspense>
+              }
+            />
+            <Route path="account" element={<Suspense fallback={<PageLoader />}><Account /></Suspense>} />
           </Route>
         </Routes>
         <GlobalAlertModal />

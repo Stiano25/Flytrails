@@ -10,10 +10,12 @@ import {
   MessageSquareQuote,
   LogOut,
   Menu,
+  Users,
+  KeyRound,
 } from 'lucide-react';
 import { useState } from 'react';
 
-const navItems = [
+const baseNavItems = [
   { to: '/admin',          label: 'Dashboard',    icon: LayoutDashboard, end: true },
   { to: '/admin/gallery',  label: 'Gallery',       icon: Images },
   { to: '/admin/trips',    label: 'Trips',         icon: Map },
@@ -24,7 +26,12 @@ const navItems = [
 ];
 
 export default function AdminLayout() {
-  const { user, signOut } = useAuth();
+  const { user, staff, signOut } = useAuth();
+  const navItems = [
+    ...baseNavItems,
+    ...(staff?.role === 'superadmin' ? [{ to: '/admin/users', label: 'Staff', icon: Users }] : []),
+    { to: '/admin/account', label: 'Account', icon: KeyRound },
+  ];
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
