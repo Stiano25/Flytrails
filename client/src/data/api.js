@@ -202,8 +202,18 @@ export const api = {
   },
 
   async subscribeNewsletter(email) {
-    // TODO: connect to email service (Resend, Mailchimp, etc.)
-    console.log('Newsletter subscription for:', email);
+    const res = await fetch('/api/newsletter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (res.status === 404) {
+        throw new Error('Newsletter service not found. Make sure the API is running.');
+      }
+      throw new Error(data.error || 'Failed to subscribe');
+    }
     return { success: true, message: 'Successfully subscribed to newsletter' };
   },
 

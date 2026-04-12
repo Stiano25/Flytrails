@@ -51,6 +51,35 @@ app.post('/api/contact', async (req, res) => {
   res.json({ success: true, message: 'Message sent successfully' });
 });
 
+app.post('/api/newsletter', async (req, res) => {
+  const { email } = req.body || {};
+
+  if (!email) {
+    res.status(400).json({ error: 'Email is required.' });
+    return;
+  }
+
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
+  if (!emailOk) {
+    res.status(400).json({ error: 'Please enter a valid email address.' });
+    return;
+  }
+
+  const result = await sendContactMail({
+    name: 'Newsletter Subscriber',
+    email,
+    subject: 'New Newsletter Subscription',
+    message: `${email} has subscribed to receive future updates.`,
+  });
+
+  if (!result.ok) {
+    res.status(result.status).json({ error: result.error });
+    return;
+  }
+
+  res.json({ success: true, message: 'Subscribed successfully' });
+});
+
 if (isProd) {
   const dist = path.join(__dirname, '../client/dist');
   app.use(express.static(dist));
