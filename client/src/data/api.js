@@ -85,6 +85,16 @@ function mapTestimonial(row) {
   };
 }
 
+function mapFaq(row) {
+  return {
+    id: row.id,
+    question: row.question,
+    answer: row.answer,
+    isActive: row.is_active,
+    sortOrder: row.sort_order ?? 0,
+  };
+}
+
 // ── API ─────────────────────────────────────────────────────────
 export const api = {
   async getTrips(filters = {}) {
@@ -199,6 +209,18 @@ export const api = {
 
     if (error) throw new Error(error.message);
     return { data: (data || []).map(mapTestimonial), total: data?.length || 0, success: true };
+  },
+
+  async getFaqs() {
+    const { data, error } = await supabase
+      .from('faqs')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return { data: (data || []).map(mapFaq), total: data?.length || 0, success: true };
   },
 
   async subscribeNewsletter(email) {
@@ -492,6 +514,40 @@ export const adminApi = {
 
     const { data: { publicUrl } } = supabase.storage.from('testimonials').getPublicUrl(filename);
     return publicUrl;
+  },
+
+  // --- FAQs ---
+  async getAllFaqs() {
+    const { data, error } = await supabase
+      .from('faqs')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data || []).map(mapFaq);
+  },
+
+  async upsertFaq(faq) {
+    const row = {
+      question: faq.question,
+      answer: faq.answer,
+      is_active: faq.isActive !== false,
+      sort_order: Number(faq.sortOrder) || 0,
+    };
+    if (faq.id) row.id = faq.id;
+
+    const { data, error } = await supabase
+      .from('faqs')
+      .upsert(row, { onConflict: 'id' })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return mapFaq(data);
+  },
+
+  async deleteFaq(id) {
+    const { error } = await supabase.from('faqs').delete().eq('id', id);
+    if (error) throw new Error(error.message);
   },
 
   // --- Site Content ---

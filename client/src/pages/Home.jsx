@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
 import HeroCarousel from '../components/home/HeroCarousel.jsx';
 import JoinSection from '../components/home/JoinSection.jsx';
 import TestimonialsSection from '../components/home/TestimonialsSection.jsx';
 import PopularAdventureCard from '../components/home/PopularAdventureCard.jsx';
 import { pageHeroImages } from '../data/pageHeroImages.js';
-import { useSubmit, useTrips, useGalleryImages, useAccommodations } from '../hooks/useApi.js';
+import { useSubmit, useTrips, useGalleryImages, useAccommodations, useFaqs } from '../hooks/useApi.js';
 import { api } from '../data/api.js';
 
 const clubs = [
@@ -39,22 +40,22 @@ const clubs = [
 
 const why = [
   {
-    title: 'Local experts',
-    text: 'Deep regional knowledge and authentic connections — not generic packages.',
+    title: 'Local Experts',
+    text: 'Trusted local guides who bring destinations to life through authentic knowledge and real local connections.',
     icon: (
       <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
     ),
   },
   {
-    title: 'Small groups',
-    text: 'Personal attention on the trail and around the campfire — real friendships form.',
+    title: 'Intentional Travel',
+    text: 'Intentional and respectful journeys that connect you deeply with local communities, cultural experiences, and authentic places.',
     icon: (
       <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
     ),
   },
   {
-    title: 'Thoughtful travel',
-    text: 'Responsible pacing, fair crew wages, and partners who care about place and people.',
+    title: 'Curated Intimate Journeys',
+    text: 'Curated intimate journeys with fewer travelers, designed for deeper connections and a more refined personal experience.',
     icon: (
       <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
     ),
@@ -63,13 +64,16 @@ const why = [
 
 export default function Home() {
   const [newsletterOk, setNewsletterOk] = useState(false);
+  const [openFaqIndex, setOpenFaqIndex] = useState(0);
   const { submit: submitNewsletter, loading: newsletterLoading } = useSubmit();
   const { data: tripsData } = useTrips();
   const { data: galleryData } = useGalleryImages();
   const { data: accommodationsData } = useAccommodations();
+  const { data: faqsData } = useFaqs();
   const popular = (tripsData || []).slice(0, 6);
   const moments = (galleryData || []).slice(0, 9);
   const featuredAccommodations = (accommodationsData || []).slice(0, 3);
+  const homeFaqs = (faqsData || []).slice(0, 8);
 
   const handleNewsletterSubmit = async (e) => {
     e.preventDefault();
@@ -304,6 +308,45 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Home FAQs */}
+      <section className="bg-white py-16 md:py-20">
+        <div className="mx-auto max-w-4xl px-4 md:px-6">
+          <div className="mb-10 text-center">
+            <h2 className="font-display text-3xl font-bold text-brand-dark md:text-4xl">Frequently asked questions</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-neutral-600">Everything you need to know before you book with Flytrails.</p>
+          </div>
+
+          {homeFaqs.length === 0 ? (
+            <p className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6 text-center text-sm text-brand-dark/60">
+              FAQs will appear here once added by admin.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {homeFaqs.map((faq, index) => (
+                <div key={faq.id} className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaqIndex((prev) => (prev === index ? -1 : index))}
+                    className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left"
+                  >
+                    <span className="font-semibold text-brand-dark">{faq.question}</span>
+                    <ChevronDown
+                      className={`h-5 w-5 shrink-0 text-primary transition-transform ${openFaqIndex === index ? 'rotate-180' : ''}`}
+                      aria-hidden
+                    />
+                  </button>
+                  {openFaqIndex === index && (
+                    <div className="border-t border-neutral-100 px-5 py-4 text-sm leading-relaxed text-neutral-600">
+                      {faq.answer}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

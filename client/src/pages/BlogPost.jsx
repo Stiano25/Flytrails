@@ -1,5 +1,6 @@
 import { Link, useParams, Navigate } from 'react-router-dom';
 import { ChevronRight, BookOpen, ArrowLeft } from 'lucide-react';
+import BlogShareBar from '../components/BlogShareBar.jsx';
 import { useBlogPost, useBlogPosts } from '../hooks/useApi.js';
 
 export default function BlogPost() {
@@ -42,6 +43,10 @@ export default function BlogPost() {
               <p className="mt-2 text-sm font-extralight text-brand-dark/50">
                 {post.date} · {post.readTime}
               </p>
+
+              <div className="mt-6">
+                <BlogShareBar title={post.title} slug={post.slug} />
+              </div>
 
               {full ? (
                 <div className="prose prose-neutral mt-10 max-w-none">

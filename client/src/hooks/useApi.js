@@ -82,6 +82,10 @@ export function useTestimonials() {
   return useApi(() => api.getTestimonials(), []);
 }
 
+export function useFaqs() {
+  return useApi(() => api.getFaqs(), []);
+}
+
 // Hook for form submissions
 export function useSubmit() {
   const [loading, setLoading] = useState(false);

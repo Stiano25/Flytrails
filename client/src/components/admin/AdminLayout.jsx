@@ -8,6 +8,7 @@ import {
   FileText,
   Building2,
   MessageSquareQuote,
+  HelpCircle,
   LogOut,
   Menu,
   Users,
@@ -21,6 +22,7 @@ const baseNavItems = [
   { to: '/admin/trips',    label: 'Trips',         icon: Map },
   { to: '/admin/accommodations', label: 'Accommodations', icon: Building2 },
   { to: '/admin/blog',     label: 'Blog',          icon: BookOpen },
+  { to: '/admin/faqs',     label: 'FAQs',          icon: HelpCircle },
   { to: '/admin/testimonials', label: 'Testimonials', icon: MessageSquareQuote },
   { to: '/admin/content',  label: 'Site Content',  icon: FileText },
 ];

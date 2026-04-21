@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { BookOpen, Calendar, Clock, ArrowRight, Sparkles } from 'lucide-react';
+import BlogShareBar from '../components/BlogShareBar.jsx';
 import { useBlogPosts } from '../hooks/useApi.js';
 
 const categories = ['Safari', 'Hiking', 'Travel Tips', 'Community', 'Budget', 'International'];
@@ -58,13 +59,16 @@ export default function Blog() {
                       {post.readTime}
                     </span>
                   </div>
-                  <Link
-                    to={`/blog/${post.slug}`}
-                    className="mt-4 inline-flex w-fit items-center gap-1 rounded-full border border-primary/35 bg-white/40 px-4 py-2 text-sm font-semibold text-primary backdrop-blur-sm transition hover:bg-white/60"
-                  >
-                    Read more
-                    <ArrowRight className="h-4 w-4" aria-hidden />
-                  </Link>
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <Link
+                      to={`/blog/${post.slug}`}
+                      className="inline-flex w-fit items-center gap-1 rounded-full border border-primary/35 bg-white/40 px-4 py-2 text-sm font-semibold text-primary backdrop-blur-sm transition hover:bg-white/60"
+                    >
+                      Read more
+                      <ArrowRight className="h-4 w-4" aria-hidden />
+                    </Link>
+                    <BlogShareBar title={post.title} slug={post.slug} compact />
+                  </div>
                 </div>
               </article>
             ))}
