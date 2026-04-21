@@ -1,3 +1,5 @@
+import nodemailer from 'nodemailer';
+
 const CONTACT_TO_DEFAULT = 'info@flytrailstravels.com';
 
 function escapeHtml(s) {
@@ -14,16 +16,16 @@ function clamp(str, max) {
 }
 
 /**
- * Sends a contact form message to the support inbox via Resend.
+ * Sends a contact form message to the support inbox via Zoho SMTP using Nodemailer.
  * @returns {{ ok: true }} | {{ ok: false, status: number, error: string }}
  */
 export async function sendContactMail({ name, email, phone, subject, message }) {
-  const apiKey = process.env.RESEND_API_KEY;
+  const zohoEmail = process.env.ZOHO_EMAIL;
+  const zohoPassword = process.env.ZOHO_APP_PASSWORD;
   const to = (process.env.CONTACT_MAIL_TO || CONTACT_TO_DEFAULT).trim();
-  const from = (process.env.CONTACT_MAIL_FROM || 'Flytrails Website <onboarding@resend.dev>').trim();
 
-  if (!apiKey) {
-    console.error('[contact] RESEND_API_KEY is not set; cannot send email.');
+  if (!zohoEmail || !zohoPassword || zohoPassword === 'your_zoho_app_password') {
+    console.error('[contact] ZOHO_EMAIL or ZOHO_APP_PASSWORD is not set; cannot send email.');
     return { ok: false, status: 503, error: 'Email delivery is not configured on the server.' };
   }
 
@@ -51,29 +53,28 @@ export async function sendContactMail({ name, email, phone, subject, message }) 
     <pre style="white-space:pre-wrap;font-family:inherit">${escapeHtml(safeMessage)}</pre>
   `.trim();
 
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.zoho.com', 
+    port: 465,
+    secure: true, 
+    auth: {
+      user: zohoEmail,
+      pass: zohoPassword,
     },
-    body: JSON.stringify({
-      from,
-      to: [to],
-      reply_to: safeEmail,
+  });
+
+  try {
+    await transporter.sendMail({
+      from: `"Flytrails Website" <${zohoEmail}>`, 
+      to,
+      replyTo: safeEmail,
       subject: `Website contact: ${safeSubject}`,
       text,
       html,
-    }),
-  });
-
-  const data = await res.json().catch(() => ({}));
-
-  if (!res.ok) {
-    const errMsg = data?.message || data?.error || res.statusText || 'Email provider rejected the request';
-    console.error('[contact] Resend error:', res.status, errMsg);
+    });
+    return { ok: true };
+  } catch (error) {
+    console.error('[contact] Nodemailer error:', error);
     return { ok: false, status: 502, error: 'Could not send your message. Please try again later or email us directly.' };
   }
-
-  return { ok: true };
 }
