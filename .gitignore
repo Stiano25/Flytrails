@@ -8,4 +8,5 @@ supabase/schema.sql
 
 node_modules/
 dist/
+client/dist/
 build/
