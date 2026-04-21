@@ -13,6 +13,7 @@ const apiProxy = {
 export default defineConfig({
   plugins: [react()],
   root: path.resolve(__dirname, 'client'),
+  envDir: __dirname,
   build: {
     outDir: path.resolve(__dirname, 'client/dist'),
     emptyOutDir: true,
