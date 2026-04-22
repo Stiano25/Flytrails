@@ -14,25 +14,32 @@ const slides = [
     cta: { to: '/trips?category=Hiking', label: 'Explore hiking' },
   },
   {
-    title: 'Savannah',
+    title: 'Camping',
     subtitle:
-      'Open plains, golden light, and wildlife moments with crews who know the Mara by heart.',
-    image: localImages.lionSafari,
-    cta: { to: '/trips?category=Safari', label: 'Explore safari' },
+      'Forest camps, bonfire nights, and guided outdoor moments built for slow, scenic adventure.',
+    image: localImages.campingDay,
+    cta: { to: '/trips', label: 'Explore camping' },
   },
   {
-    title: 'Beach',
+    title: 'Group Experiences',
     subtitle:
-      'Indian Ocean calm — Diani, Lamu, Zanzibar — slow days and clear water between adventures.',
-    image: localImages.beach,
-    cta: { to: '/trips?category=Beach', label: 'Explore coast' },
+      'Shared adventures designed for friends and social travelers who love memorable moments together.',
+    image: localImages.groupExperiences,
+    cta: { to: '/trips', label: 'Explore groups' },
   },
   {
-    title: 'World',
+    title: 'International Tours',
     subtitle:
-      'City breaks and longer escapes abroad — halal-friendly stays and Flytrails pacing end to end.',
-    image: localImages.baliInternational,
-    cta: { to: '/trips?category=International', label: 'Explore trips' },
+      'Tanzania, Kenya, Uganda, Rwanda, and Zanzibar with curated routes, local hosts, and smooth planning.',
+    image: localImages.maasaiMara,
+    cta: { to: '/trips?category=International', label: 'Explore international' },
+  },
+  {
+    title: 'Women-Only Tours',
+    subtitle:
+      'Comfort-first journeys for women with safe pacing, supportive groups, and intentional itineraries.',
+    image: localImages.womenOnly,
+    cta: { to: '/trips?category=Women-Only', label: 'Explore women-only' },
   },
 ];
 
@@ -81,7 +88,7 @@ export default function HeroCarousel() {
 
   return (
     <section
-      className="relative min-h-[min(92vh,880px)] overflow-hidden bg-brand-dark"
+      className="relative overflow-hidden bg-brand-dark md:min-h-[min(92vh,880px)]"
       {...swipeHandlers}
     >
       <div className="absolute inset-0 z-0 overflow-hidden">
@@ -120,9 +127,9 @@ export default function HeroCarousel() {
         />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-[min(92vh,880px)] max-w-7xl flex-col justify-center px-4 pb-28 pt-24 md:px-6 md:pb-24 md:pt-28 lg:pb-20">
-        <div className="flex w-full flex-col gap-10 lg:flex-row lg:items-stretch lg:gap-10 xl:gap-12">
-          <div className="flex min-w-0 flex-1 flex-col justify-center lg:max-w-[58%] lg:flex-[0.58]">
+      <div className="relative z-10 mx-auto flex max-w-7xl flex-col justify-center px-4 pb-8 pt-14 md:min-h-[min(92vh,880px)] md:px-6 md:pb-24 md:pt-28 lg:pb-20">
+        <div className="grid w-full grid-cols-1 gap-5 lg:grid-cols-[minmax(0,0.58fr)_minmax(0,0.42fr)] lg:items-stretch lg:gap-x-10 xl:gap-x-12">
+          <div className="flex min-w-0 flex-col justify-center lg:col-start-1 lg:row-start-1">
             <AnimatePresence mode="wait">
               <motion.div
                 key={i}
@@ -131,42 +138,19 @@ export default function HeroCarousel() {
                 exit={{ opacity: 0, y: reducedMotion ? 0 : -6 }}
                 transition={{ duration: reducedMotion ? 0 : 0.35 }}
               >
-                <h1 className="font-beauty text-[clamp(4.75rem,20vw,12.5rem)] leading-[0.92] text-brand-light drop-shadow-md">
+                <h1 className="font-beauty text-[clamp(3.35rem,14.5vw,10.6rem)] leading-[0.9] text-brand-light drop-shadow-md">
                   {slide.title}
                 </h1>
-                <p className="mt-7 max-w-xl font-sans text-lg font-extralight leading-relaxed text-brand-light/90 md:text-xl">
+                <p className="mt-4 max-w-xl font-sans text-base font-extralight leading-relaxed text-brand-light/90 md:mt-7 md:text-xl">
                   {slide.subtitle}
                 </p>
-                <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
-                  <Link
-                    to={slide.cta.to}
-                    className="inline-flex items-center justify-center rounded-full bg-accent px-8 py-3.5 text-sm font-bold tracking-wide text-brand-dark shadow-lg transition hover:bg-accent/90 hover:shadow-xl"
-                  >
-                    {slide.cta.label}
-                  </Link>
-                  <Link
-                    to="/custom-tours"
-                    className="inline-flex items-center justify-center rounded-full border border-white/40 bg-white/10 px-8 py-3.5 text-sm font-light text-brand-light backdrop-blur-md transition hover:bg-white/20"
-                  >
-                    Request a custom trip
-                  </Link>
-                </div>
               </motion.div>
             </AnimatePresence>
-
-            <div className="mt-10 grid gap-4 border-t border-white/15 pt-8 sm:grid-cols-3">
-              {trust.map((t) => (
-                <div key={t.label} className="text-left">
-                  <p className="font-display text-base font-bold text-brand-light md:text-lg">{t.label}</p>
-                  <p className="mt-1 font-sans text-sm font-extralight text-brand-light/70">{t.sub}</p>
-                </div>
-              ))}
-            </div>
           </div>
 
-          <div className="relative w-full shrink-0 lg:max-w-[40%] lg:flex-[0.42]">
+          <div className="relative mx-auto w-[calc(100vw-20px)] max-w-[calc(100vw-20px)] shrink-0 sm:w-full sm:max-w-[300px] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:max-w-[320px]">
             <div className="relative overflow-hidden rounded-3xl border border-white/25 bg-white/10 shadow-2xl backdrop-blur-xl">
-              <div className="relative aspect-[4/5] max-h-[min(52vh,420px)] w-full sm:aspect-[16/11] sm:max-h-none lg:aspect-[4/5] lg:max-h-[min(58vh,440px)]">
+              <div className="relative aspect-[4/5] max-h-[26vh] w-full sm:max-h-[52vh] lg:max-h-[50vh]">
                 <AnimatePresence initial={false} mode="wait">
                   <motion.img
                     key={i}
@@ -185,7 +169,7 @@ export default function HeroCarousel() {
                 </AnimatePresence>
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-transparent to-brand-dark/20" />
                 <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
-                  <p className="font-beauty text-[clamp(2.5rem,8vw,4.5rem)] leading-none text-white drop-shadow-lg">
+                  <p className="font-beauty text-[clamp(2.13rem,6.8vw,3.83rem)] leading-none text-white drop-shadow-lg">
                     {slide.title}
                   </p>
                 </div>
@@ -230,6 +214,34 @@ export default function HeroCarousel() {
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </div>
+            </div>
+          </div>
+
+          <div className="lg:col-start-1 lg:row-start-2">
+            <div className="mt-1 flex flex-col gap-3 sm:mt-2 sm:gap-4 sm:flex-row sm:flex-wrap">
+              <Link
+                to={slide.cta.to}
+                className="inline-flex items-center justify-center rounded-full bg-accent px-8 py-3.5 text-sm font-bold tracking-wide text-brand-dark shadow-lg transition hover:bg-accent/90 hover:shadow-xl"
+              >
+                {slide.cta.label}
+              </Link>
+              <Link
+                to="/custom-tours"
+                className="inline-flex items-center justify-center rounded-full border border-white/40 bg-white/10 px-8 py-3.5 text-sm font-light text-brand-light backdrop-blur-md transition hover:bg-white/20"
+              >
+                Request a custom trip
+              </Link>
+            </div>
+
+            <div className="mt-8 grid grid-cols-3 gap-2 border-t border-white/15 pt-6 sm:mt-10 sm:gap-4 sm:pt-8">
+              {trust.map((t) => (
+                <div key={t.label} className="text-left">
+                  <p className="font-display text-sm font-bold text-brand-light sm:text-base md:text-lg">{t.label}</p>
+                  <p className="mt-1 font-sans text-[11px] font-extralight leading-snug text-brand-light/70 sm:text-sm">
+                    {t.sub}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
