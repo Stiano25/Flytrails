@@ -5,7 +5,7 @@ import TripCard from '../components/TripCard.jsx';
 import PageHero from '../components/PageHero.jsx';
 import { useTrips } from '../hooks/useApi.js';
 
-const categories = ['Hiking', 'Beach', 'Safari', 'International', 'Halal Trips', 'Women-Only'];
+const categories = ['Hiking', 'Camping', 'International', 'Women-Only', 'Beach', 'Group Experiences'];
 import { pageHeroImages } from '../data/pageHeroImages.js';
 import { parseDurationDays, durationBucket, matchesBudget } from '../utils/formatters.js';
 

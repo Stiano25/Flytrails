@@ -31,7 +31,7 @@ const slides = [
     title: 'International Tours',
     subtitle:
       'Tanzania, Kenya, Uganda, Rwanda, and Zanzibar with curated routes, local hosts, and smooth planning.',
-    image: localImages.maasaiMara,
+    image: localImages.international,
     cta: { to: '/trips?category=International', label: 'Explore international' },
   },
   {
