@@ -13,6 +13,7 @@ import {
   Mail,
   Building2,
   ChevronDown,
+  Star,
 } from 'lucide-react';
 import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
 
@@ -31,6 +32,7 @@ const exploreLinks = [
 const discoverLinks = [
   { to: '/gallery', label: 'Gallery', Icon: Images },
   { to: '/blog', label: 'Blog', Icon: BookOpen },
+  { to: '/reviews', label: 'Reviews', Icon: Star },
 ];
 
 const aboutLinks = [

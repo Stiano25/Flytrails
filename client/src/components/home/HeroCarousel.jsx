@@ -18,7 +18,7 @@ const slides = [
     subtitle:
       'Forest camps, bonfire nights, and guided outdoor moments built for slow, scenic adventure.',
     image: localImages.campingDay,
-    cta: { to: '/trips', label: 'Explore camping' },
+    cta: { to: '/trips?category=Camping', label: 'Explore camping' },
   },
   {
     title: 'Group Experiences',
@@ -35,11 +35,11 @@ const slides = [
     cta: { to: '/trips?category=International', label: 'Explore international' },
   },
   {
-    title: 'Women-Only Tours',
+    title: 'Safari',
     subtitle:
-      'Comfort-first journeys for women with safe pacing, supportive groups, and intentional itineraries.',
-    image: localImages.womenOnly,
-    cta: { to: '/trips?category=Women-Only', label: 'Explore women-only' },
+      'Big-sky savannahs, expert guides, and wildlife moments that stay with you long after you head home.',
+    image: localImages.safari,
+    cta: { to: '/trips?category=Safari', label: 'Explore safari' },
   },
 ];
 

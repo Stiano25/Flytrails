@@ -23,6 +23,8 @@ const About = lazy(() => import('./pages/About.jsx'));
 const Blog = lazy(() => import('./pages/Blog.jsx'));
 const BlogPost = lazy(() => import('./pages/BlogPost.jsx'));
 const Contact = lazy(() => import('./pages/Contact.jsx'));
+const Terms = lazy(() => import('./pages/Terms.jsx'));
+const Reviews = lazy(() => import('./pages/Reviews.jsx'));
 const NotFound = lazy(() => import('./pages/NotFound.jsx'));
 
 // Admin pages (lazy loaded)
@@ -35,6 +37,7 @@ const BlogAdmin = lazy(() => import('./pages/admin/BlogAdmin.jsx'));
 const SiteContent = lazy(() => import('./pages/admin/SiteContent.jsx'));
 const TestimonialsAdmin = lazy(() => import('./pages/admin/TestimonialsAdmin.jsx'));
 const FaqsAdmin = lazy(() => import('./pages/admin/FaqsAdmin.jsx'));
+const ReviewsAdmin = lazy(() => import('./pages/admin/ReviewsAdmin.jsx'));
 const UsersAdmin = lazy(() => import('./pages/admin/UsersAdmin.jsx'));
 const Account = lazy(() => import('./pages/admin/Account.jsx'));
 
@@ -66,6 +69,8 @@ export default function App() {
             <Route path="blog" element={<Suspense fallback={<PageLoader />}><Blog /></Suspense>} />
             <Route path="blog/:slug" element={<Suspense fallback={<PageLoader />}><BlogPost /></Suspense>} />
             <Route path="contact" element={<Suspense fallback={<PageLoader />}><Contact /></Suspense>} />
+            <Route path="terms" element={<Suspense fallback={<PageLoader />}><Terms /></Suspense>} />
+            <Route path="reviews" element={<Suspense fallback={<PageLoader />}><Reviews /></Suspense>} />
             <Route path="404" element={<Suspense fallback={<PageLoader />}><NotFound /></Suspense>} />
             <Route path="*" element={<Suspense fallback={<PageLoader />}><NotFound /></Suspense>} />
           </Route>
@@ -91,6 +96,7 @@ export default function App() {
             <Route path="content" element={<Suspense fallback={<PageLoader />}><SiteContent /></Suspense>} />
             <Route path="faqs" element={<Suspense fallback={<PageLoader />}><FaqsAdmin /></Suspense>} />
             <Route path="testimonials" element={<Suspense fallback={<PageLoader />}><TestimonialsAdmin /></Suspense>} />
+            <Route path="reviews" element={<Suspense fallback={<PageLoader />}><ReviewsAdmin /></Suspense>} />
             <Route
               path="users"
               element={

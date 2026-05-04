@@ -231,7 +231,7 @@ export const trips = [
   },
 ];
 
-export const categories = ['Hiking', 'Camping', 'International', 'Women-Only', 'Beach', 'Group Experiences'];
+export const categories = ['Hiking', 'Camping', 'Safari', 'International', 'Women-Only', 'Beach', 'Group Experiences'];
 
 export function getTripBySlug(slug) {
   return trips.find((t) => t.slug === slug);

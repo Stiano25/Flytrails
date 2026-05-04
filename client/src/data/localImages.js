@@ -4,11 +4,14 @@
 const i = (name) => `/images/${encodeURIComponent(name)}`;
 
 export const localImages = {
-  hiking: i('hiking.jpg'),
-  campingDay: i('camping.jpg'),
-  groupExperiences: i('group.jpg'),
+  hiking: i('Hiking.jpeg'),
+  campingDay: i('camping.jpeg'),
+  groupExperiences: i('group.jpeg'),
   maasaiMara: i('MaasaiMara.jpg'),
   international: i('international.jpeg'),
+  safari: i('elephantsafari.jpeg'),
+  about: i('about.jpeg'),
+  founder: i('HamzaHassan.jpeg'),
   womenOnly: i('womenonly.jpg'),
   beach: i('beach.jpg'),
   dianiBeach: i('diani beach.jpg'),

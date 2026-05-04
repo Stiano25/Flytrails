@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { X, MessageCircle } from 'lucide-react';
 import { useFocusTrap } from '../hooks/useFocusTrap.js';
 import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
@@ -48,6 +49,13 @@ export default function ReserveModal({ open, onClose, tripTitle }) {
         <p className="text-sm font-light text-brand-dark/80">
           Complete your booking for <strong className="font-semibold text-brand-dark">{tripTitle}</strong> by messaging our team.
           We&apos;ll confirm availability and send payment details.
+        </p>
+        <p className="mt-3 text-xs font-light text-brand-dark/65">
+          By continuing, you agree to our{' '}
+          <Link to="/terms" className="font-medium text-primary underline underline-offset-2 hover:text-primary/80" onClick={onClose}>
+            Terms & Conditions
+          </Link>
+          .
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <a

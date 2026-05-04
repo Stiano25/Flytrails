@@ -10,6 +10,7 @@ const quickLinks = [
   { to: '/upcoming-trips', label: 'Upcoming' },
   { to: '/membership', label: 'Membership' },
   { to: '/contact', label: 'Contact' },
+  { to: '/terms', label: 'Terms & Conditions' },
 ];
 
 const categories = [

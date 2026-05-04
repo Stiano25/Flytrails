@@ -13,6 +13,7 @@ import {
   Menu,
   Users,
   KeyRound,
+  Star,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -23,6 +24,7 @@ const baseNavItems = [
   { to: '/admin/accommodations', label: 'Accommodations', icon: Building2 },
   { to: '/admin/blog',     label: 'Blog',          icon: BookOpen },
   { to: '/admin/faqs',     label: 'FAQs',          icon: HelpCircle },
+  { to: '/admin/reviews',  label: 'Reviews',       icon: Star },
   { to: '/admin/testimonials', label: 'Testimonials', icon: MessageSquareQuote },
   { to: '/admin/content',  label: 'Site Content',  icon: FileText },
 ];

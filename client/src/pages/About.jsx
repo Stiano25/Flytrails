@@ -23,9 +23,9 @@ const values = [
 
 const team = [
   {
-    name: 'Hamza Majid Hassan',
+    name: 'Hamza Hassan',
     role: 'Director & Founder',
-    avatar: localImages.hiking,
+    avatar: localImages.founder,
   },
   {
     name: 'Wanjiku M.',
@@ -48,7 +48,7 @@ export default function About() {
     <div className="relative">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_20%,rgba(27,67,50,0.08),transparent_55%)]" />
       <section className="relative h-[min(45vh,400px)] overflow-hidden">
-        <img src={localImages.hiking} alt="Travellers on a hill at sunset" className="h-full w-full object-cover animate-video-effect" />
+        <img src={localImages.about} alt="Flytrails travellers" className="h-full w-full object-cover animate-video-effect" />
         <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/85 via-brand-dark/40 to-brand-dark/25" />
         <div className="absolute inset-0 flex items-center justify-center px-4">
           <h1 className="text-center font-display text-4xl font-bold text-brand-light drop-shadow md:text-5xl lg:text-6xl">
@@ -82,9 +82,9 @@ export default function About() {
             )}
           </div>
           <div className="overflow-hidden rounded-3xl border border-white/35 bg-white/20 shadow-xl backdrop-blur-xl">
-            <img src={localImages.sirimonTrek} alt="Hamza Majid Hassan, Director" className="aspect-[4/5] w-full object-cover" />
+            <img src={localImages.founder} alt="Hamza Hassan, Director & Founder" className="aspect-[4/5] w-full object-cover" />
             <p className="border-t border-white/25 bg-white/30 px-4 py-3 text-center text-sm font-semibold text-brand-dark backdrop-blur-sm">
-              Hamza Majid Hassan — Director
+              Hamza Hassan — Director & Founder
             </p>
           </div>
         </div>

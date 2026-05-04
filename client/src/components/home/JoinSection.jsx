@@ -6,7 +6,7 @@ import {
   Trees,
   Waves,
   Globe,
-  Users,
+  Tent,
   Utensils,
 } from 'lucide-react';
 
@@ -48,10 +48,10 @@ const joinOptions = [
     Icon: Utensils,
   },
   {
-    label: 'In women-only groups',
-    sub: 'Curated trips',
-    query: 'Women-Only',
-    Icon: Users,
+    label: 'Camping',
+    sub: 'Nights under the stars',
+    query: 'Camping',
+    Icon: Tent,
   },
 ];
 

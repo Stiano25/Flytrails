@@ -86,6 +86,10 @@ export function useFaqs() {
   return useApi(() => api.getFaqs(), []);
 }
 
+export function useCustomerReviews() {
+  return useApi(() => api.getCustomerReviews(), []);
+}
+
 // Hook for form submissions
 export function useSubmit() {
   const [loading, setLoading] = useState(false);

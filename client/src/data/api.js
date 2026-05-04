@@ -95,6 +95,20 @@ function mapFaq(row) {
   };
 }
 
+function mapCustomerReview(row) {
+  return {
+    id: row.id,
+    authorName: row.author_name,
+    authorEmail: row.author_email || '',
+    rating: row.rating,
+    body: row.body,
+    status: row.status,
+    adminReply: row.admin_reply || '',
+    adminRepliedAt: row.admin_replied_at || null,
+    createdAt: row.created_at,
+  };
+}
+
 // ── API ─────────────────────────────────────────────────────────
 export const api = {
   async getTrips(filters = {}) {
@@ -221,6 +235,44 @@ export const api = {
 
     if (error) throw new Error(error.message);
     return { data: (data || []).map(mapFaq), total: data?.length || 0, success: true };
+  },
+
+  async getCustomerReviews() {
+    const { data, error } = await supabase
+      .from('customer_reviews')
+      .select('id, author_name, rating, body, admin_reply, admin_replied_at, created_at, status')
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return { data: (data || []).map(mapCustomerReview), total: data?.length || 0, success: true };
+  },
+
+  async submitCustomerReview({ authorName, authorEmail, rating, body }) {
+    const name = String(authorName || '').trim();
+    const text = String(body || '').trim();
+    if (!name) throw new Error('Please enter your name.');
+    if (text.length < 10) throw new Error('Review must be at least 10 characters.');
+    if (text.length > 5000) throw new Error('Review is too long (max 5000 characters).');
+
+    const email = String(authorEmail || '').trim();
+    let ratingVal = null;
+    if (rating !== '' && rating != null) {
+      const n = Number(rating);
+      if (!Number.isFinite(n) || n < 1 || n > 5) throw new Error('Rating must be between 1 and 5.');
+      ratingVal = n;
+    }
+
+    const { error } = await supabase.from('customer_reviews').insert({
+      author_name: name,
+      author_email: email || null,
+      rating: ratingVal,
+      body: text,
+      status: 'pending',
+    });
+
+    if (error) throw new Error(error.message);
+    return { success: true, message: 'Thanks — your review was submitted for moderation.' };
   },
 
   async subscribeNewsletter(email) {
@@ -557,6 +609,39 @@ export const adminApi = {
 
   async deleteFaq(id) {
     const { error } = await supabase.from('faqs').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  },
+
+  // --- Customer reviews (public submissions + staff moderation) ---
+  async getAllCustomerReviews() {
+    const { data, error } = await supabase
+      .from('customer_reviews')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data || []).map(mapCustomerReview);
+  },
+
+  async updateCustomerReview({ id, status, adminReply }) {
+    const payload = { status };
+    if (adminReply !== undefined) {
+      const reply = String(adminReply || '').trim();
+      payload.admin_reply = reply || null;
+      payload.admin_replied_at = reply ? new Date().toISOString() : null;
+    }
+
+    const { data, error } = await supabase
+      .from('customer_reviews')
+      .update(payload)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return mapCustomerReview(data);
+  },
+
+  async deleteCustomerReview(id) {
+    const { error } = await supabase.from('customer_reviews').delete().eq('id', id);
     if (error) throw new Error(error.message);
   },
 
