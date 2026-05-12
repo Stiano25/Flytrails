@@ -15,9 +15,11 @@ const quickLinks = [
 
 const categories = [
   { to: '/trips?category=Hiking', label: 'Hiking' },
+  { to: '/trips?category=Camping', label: 'Camping' },
   { to: '/trips?category=Beach', label: 'Beach' },
   { to: '/trips?category=Safari', label: 'Safari' },
   { to: '/trips?category=International', label: 'International' },
+  { to: '/trips?category=Group Experiences', label: 'Group experiences' },
   { to: '/trips?category=Halal Trips', label: 'Halal Trips' },
 ];
 

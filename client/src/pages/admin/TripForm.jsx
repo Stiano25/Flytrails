@@ -2,7 +2,16 @@ import { useState, useRef } from 'react';
 import { adminApi } from '../../data/api.js';
 import { X, Plus, Trash2, Upload } from 'lucide-react';
 
-const CATEGORIES = ['Hiking', 'Beach', 'Safari', 'International', 'Halal Trips', 'Women-Only'];
+const CATEGORIES = [
+  'Hiking',
+  'Camping',
+  'Safari',
+  'International',
+  'Women-Only',
+  'Beach',
+  'Group Experiences',
+  'Halal Trips',
+];
 const DIFFICULTIES = ['Easy', 'Moderate', 'Hard'];
 
 const emptyTrip = {
