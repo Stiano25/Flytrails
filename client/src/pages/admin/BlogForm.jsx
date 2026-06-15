@@ -4,6 +4,16 @@ import { X, Plus, Trash2, Upload } from 'lucide-react';
 
 const CATEGORIES = ['Safari', 'Hiking', 'Travel Tips', 'Community', 'Budget', 'International'];
 
+function slugify(value = '') {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 const emptyPost = {
   slug: '', title: '', excerpt: '', category: 'Safari',
   readTime: '', date: new Date().toISOString().slice(0, 10),
@@ -80,8 +90,11 @@ export default function BlogForm({ post, onSave, onClose }) {
     e.preventDefault();
     setSaving(true);
     try {
+      const slug = slugify(form.slug || form.title);
+      if (!slug) throw new Error('Add a title or slug so this post has a URL.');
       const saved = await adminApi.upsertBlogPost({
         ...form,
+        slug,
         sections: form.sections.filter((s) => s.heading || s.body.some(Boolean)),
       });
       onSave(saved);
@@ -115,7 +128,7 @@ export default function BlogForm({ post, onSave, onClose }) {
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Slug (URL) *</span>
-                <input value={form.slug} onChange={(e) => set('slug', e.target.value.toLowerCase().replace(/\s+/g, '-'))} required placeholder="e.g. best-time-mt-kenya" className={inputClass()} />
+                <input value={form.slug} onChange={(e) => set('slug', slugify(e.target.value))} required placeholder="e.g. best-time-mt-kenya" className={inputClass()} />
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Category *</span>

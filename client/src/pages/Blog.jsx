@@ -7,7 +7,7 @@ const categories = ['Safari', 'Hiking', 'Travel Tips', 'Community', 'Budget', 'I
 
 export default function Blog() {
   const { data: postsData } = useBlogPosts();
-  const blogPosts = postsData || [];
+  const blogPosts = (postsData || []).filter((p) => p.slug?.trim());
   const popular = blogPosts.filter((p) => p.featured).slice(0, 3);
 
   return (
