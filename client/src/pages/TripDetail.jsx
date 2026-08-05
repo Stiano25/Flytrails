@@ -14,6 +14,7 @@ import {
 import { useTrip } from '../hooks/useApi.js';
 import ReserveModal from '../components/ReserveModal.jsx';
 import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
+import { isTripExpired } from '../utils/tripStatus.js';
 
 function formatKes(n) {
   return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', maximumFractionDigits: 0 }).format(n);
@@ -37,6 +38,7 @@ export default function TripDetail() {
   if (loading) return null;
 
   const pct = trip.spotsTotal ? Math.round((trip.spotsLeft / trip.spotsTotal) * 100) : 0;
+  const expired = isTripExpired(trip.nextDeparture);
 
   return (
     <div className="relative bg-transparent">
@@ -189,13 +191,20 @@ export default function TripDetail() {
               <li className="flex items-start gap-2">
                 <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
                 <span>
-                  <span className="font-semibold text-brand-dark">Next departure:</span>{' '}
+                  <span className="font-semibold text-brand-dark">
+                    {expired ? 'Departure:' : 'Next departure:'}
+                  </span>{' '}
                   {new Date(trip.nextDeparture).toLocaleDateString('en-KE', {
                     weekday: 'long',
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
                   })}
+                  {expired && (
+                    <span className="mt-1 block text-xs font-bold text-emerald-700">
+                      Adventure accomplished
+                    </span>
+                  )}
                 </span>
               </li>
             </ul>
@@ -212,10 +221,17 @@ export default function TripDetail() {
             </div>
             <button
               type="button"
-              onClick={() => setReserveOpen(true)}
-              className="mt-6 w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-accent shadow-md transition hover:bg-primary/90"
+              disabled={expired}
+              onClick={() => {
+                if (!expired) setReserveOpen(true);
+              }}
+              className={`mt-6 w-full rounded-xl py-3.5 text-sm font-bold shadow-md transition ${
+                expired
+                  ? 'cursor-not-allowed bg-emerald-100 text-emerald-700'
+                  : 'bg-primary text-accent hover:bg-primary/90'
+              }`}
             >
-              Reserve your spot
+              {expired ? 'Adventure accomplished' : 'Reserve your spot'}
             </button>
             <Link
               to="/contact"
