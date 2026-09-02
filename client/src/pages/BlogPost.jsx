@@ -48,19 +48,54 @@ export default function BlogPost() {
                 <BlogShareBar title={post.title} slug={post.slug} />
               </div>
 
+              {post.gallery?.length > 0 && (
+                <div className="mt-8">
+                  <h2 className="font-semibold text-brand-dark">Gallery</h2>
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3">
+                    {post.gallery.map((url, index) => (
+                      <img
+                        key={`${url}-${index}`}
+                        src={url}
+                        alt={`${post.title} — gallery ${index + 1}`}
+                        className="aspect-square w-full rounded-lg object-cover sm:rounded-xl"
+                        loading="lazy"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {full ? (
                 <div className="prose prose-neutral mt-10 max-w-none">
-                  {full.sections.map((s) => (
-                    <section key={s.heading} className="mb-8">
+                  {full.sections.map((s, si) => (
+                    <section key={`${s.heading}-${si}`} className="mb-8">
                       <h2 className="font-display text-2xl font-bold text-brand-dark">{s.heading}</h2>
-                      {s.body.map((para, i) => (
-                        <p key={i} className="mt-4 font-light leading-relaxed text-brand-dark/85">
-                          {para}
-                        </p>
-                      ))}
+                      {s.body.map((block, i) =>
+                        typeof block === 'string' ? (
+                          <p key={i} className="mt-4 font-light leading-relaxed text-brand-dark/85">
+                            {block}
+                          </p>
+                        ) : block?.type === 'image' && block.url ? (
+                          <figure key={i} className="my-6">
+                            <img
+                              src={block.url}
+                              alt={block.alt || ''}
+                              className="w-full rounded-2xl object-cover"
+                              loading="lazy"
+                            />
+                            {block.caption ? (
+                              <figcaption className="mt-2 text-center text-sm font-light text-brand-dark/60">
+                                {block.caption}
+                              </figcaption>
+                            ) : null}
+                          </figure>
+                        ) : null
+                      )}
                     </section>
                   ))}
-                  <p className="mt-8 border-l-4 border-accent pl-4 font-light italic text-brand-dark/80">{full.closing}</p>
+                  {full.closing ? (
+                    <p className="mt-8 border-l-4 border-accent pl-4 font-light italic text-brand-dark/80">{full.closing}</p>
+                  ) : null}
                 </div>
               ) : (
                 <div className="mt-10 space-y-4 font-light leading-relaxed text-brand-dark/85">

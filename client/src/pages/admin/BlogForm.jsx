@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { adminApi } from '../../data/api.js';
-import { X, Plus, Trash2, Upload } from 'lucide-react';
+import { X, Plus, Trash2, Upload, ImagePlus } from 'lucide-react';
 
 const CATEGORIES = ['Safari', 'Hiking', 'Travel Tips', 'Community', 'Budget', 'International'];
 
@@ -14,10 +14,29 @@ function slugify(value = '') {
     .replace(/^-|-$/g, '');
 }
 
+function isImageBlock(block) {
+  return block && typeof block === 'object' && block.type === 'image';
+}
+
+function bodyBlockHasContent(block) {
+  if (typeof block === 'string') return Boolean(block.trim());
+  if (isImageBlock(block)) return Boolean(block.url);
+  return false;
+}
+
+function filterSectionsForSave(sections) {
+  return sections
+    .map((s) => ({
+      ...s,
+      body: (s.body || []).filter(bodyBlockHasContent),
+    }))
+    .filter((s) => s.heading || s.body.some(bodyBlockHasContent));
+}
+
 const emptyPost = {
   slug: '', title: '', excerpt: '', category: 'Safari',
   readTime: '', date: new Date().toISOString().slice(0, 10),
-  image: '', featured: false, isPublished: true,
+  image: '', gallery: [], featured: false, isPublished: true,
   sections: [{ heading: '', body: [''] }], closing: '',
 };
 
@@ -28,16 +47,20 @@ function inputClass(extra = '') {
 export default function BlogForm({ post, onSave, onClose }) {
   const [form, setForm] = useState(() => post ? {
     ...post,
+    gallery: post.gallery?.length ? post.gallery : [],
     sections: post.sections?.length ? post.sections : [{ heading: '', body: [''] }],
-  } : { ...emptyPost });
+  } : { ...emptyPost, gallery: [] });
 
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  const [inlineUploading, setInlineUploading] = useState(null);
   const fileRef = useRef();
+  const galleryFileRef = useRef();
+  const inlineFileRefs = useRef({});
 
   function set(key, value) { setForm((f) => ({ ...f, [key]: value })); }
 
-  // Section helpers
   function updateSection(si, key, value) {
     setForm((f) => {
       const sections = [...f.sections];
@@ -68,6 +91,17 @@ export default function BlogForm({ post, onSave, onClose }) {
       return { ...f, sections };
     });
   }
+  function updateImageBlock(si, pi, patch) {
+    setForm((f) => {
+      const sections = [...f.sections];
+      const body = [...sections[si].body];
+      const current = body[pi];
+      if (!isImageBlock(current)) return f;
+      body[pi] = { ...current, ...patch };
+      sections[si] = { ...sections[si], body };
+      return { ...f, sections };
+    });
+  }
   function removePara(si, pi) {
     setForm((f) => {
       const sections = [...f.sections];
@@ -83,7 +117,51 @@ export default function BlogForm({ post, onSave, onClose }) {
     setUploading(true);
     try { set('image', await adminApi.uploadBlogImage(file)); }
     catch (err) { alert(err.message); }
-    finally { setUploading(false); }
+    finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  }
+
+  async function handleGalleryUpload(e) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setGalleryUploading(true);
+    try {
+      const uploadedUrls = await Promise.all(files.map((file) => adminApi.uploadBlogImage(file)));
+      set('gallery', [...form.gallery, ...uploadedUrls]);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setGalleryUploading(false);
+      e.target.value = '';
+    }
+  }
+
+  function removeGalleryImage(index) {
+    set('gallery', form.gallery.filter((_, i) => i !== index));
+  }
+
+  async function handleInlineImageUpload(si, e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setInlineUploading(si);
+    try {
+      const url = await adminApi.uploadBlogImage(file);
+      setForm((f) => {
+        const sections = [...f.sections];
+        sections[si] = {
+          ...sections[si],
+          body: [...sections[si].body, { type: 'image', url, alt: '', caption: '' }],
+        };
+        return { ...f, sections };
+      });
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setInlineUploading(null);
+      e.target.value = '';
+    }
   }
 
   async function handleSubmit(e) {
@@ -95,7 +173,8 @@ export default function BlogForm({ post, onSave, onClose }) {
       const saved = await adminApi.upsertBlogPost({
         ...form,
         slug,
-        sections: form.sections.filter((s) => s.heading || s.body.some(Boolean)),
+        gallery: form.gallery.filter(Boolean),
+        sections: filterSectionsForSave(form.sections),
       });
       onSave(saved);
     } catch (err) {
@@ -118,7 +197,6 @@ export default function BlogForm({ post, onSave, onClose }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 overflow-y-auto p-6" style={{ maxHeight: 'calc(100vh - 160px)' }}>
-          {/* Basic info */}
           <section>
             <h3 className="mb-4 font-semibold text-slate-700">Basic info</h3>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -151,7 +229,6 @@ export default function BlogForm({ post, onSave, onClose }) {
             </div>
           </section>
 
-          {/* Cover image */}
           <section>
             <h3 className="mb-4 font-semibold text-slate-700">Cover image</h3>
             <div className="flex gap-4 items-start">
@@ -168,7 +245,48 @@ export default function BlogForm({ post, onSave, onClose }) {
             </div>
           </section>
 
-          {/* Content sections */}
+          <section>
+            <h3 className="mb-4 font-semibold text-slate-700">Gallery images</h3>
+            <p className="mb-3 text-xs text-slate-500">Extra photos shown as a grid on the article (not the cover).</p>
+            <div className="mb-3">
+              <button
+                type="button"
+                onClick={() => galleryFileRef.current.click()}
+                disabled={galleryUploading}
+                className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              >
+                <Upload className="h-4 w-4" />
+                {galleryUploading ? 'Uploading gallery images…' : 'Upload gallery images'}
+              </button>
+              <input
+                ref={galleryFileRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleGalleryUpload}
+              />
+            </div>
+            {form.gallery.length === 0 ? (
+              <p className="text-sm text-slate-500">No gallery images uploaded yet.</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {form.gallery.map((url, i) => (
+                  <div key={`${url}-${i}`} className="relative overflow-hidden rounded-xl border border-slate-200">
+                    <img src={url} alt={`Gallery ${i + 1}`} className="h-24 w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeGalleryImage(i)}
+                      className="absolute right-1 top-1 rounded-md bg-black/60 p-1 text-white hover:bg-black/75"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
           <section>
             <h3 className="mb-4 font-semibold text-slate-700">Article content</h3>
             {form.sections.map((section, si) => (
@@ -185,23 +303,66 @@ export default function BlogForm({ post, onSave, onClose }) {
                   placeholder="Section heading"
                   className={inputClass('mb-3')}
                 />
-                {section.body.map((para, pi) => (
-                  <div key={pi} className="mb-2 flex gap-2">
-                    <textarea
-                      value={para}
-                      onChange={(e) => updatePara(si, pi, e.target.value)}
-                      placeholder="Paragraph"
-                      rows={2}
-                      className={inputClass('resize-none flex-1')}
-                    />
-                    <button type="button" onClick={() => removePara(si, pi)} className="rounded-xl border border-slate-200 p-2 text-slate-400 hover:bg-white">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                {section.body.map((block, pi) => (
+                  <div key={pi} className="mb-3">
+                    {isImageBlock(block) ? (
+                      <div className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3">
+                        <img src={block.url} alt={block.alt || ''} className="h-20 w-28 shrink-0 rounded-lg object-cover border border-slate-100" />
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <input
+                            value={block.alt || ''}
+                            onChange={(e) => updateImageBlock(si, pi, { alt: e.target.value })}
+                            placeholder="Alt text"
+                            className={inputClass()}
+                          />
+                          <input
+                            value={block.caption || ''}
+                            onChange={(e) => updateImageBlock(si, pi, { caption: e.target.value })}
+                            placeholder="Caption (optional)"
+                            className={inputClass()}
+                          />
+                        </div>
+                        <button type="button" onClick={() => removePara(si, pi)} className="self-start rounded-xl border border-slate-200 p-2 text-slate-400 hover:bg-slate-50">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <textarea
+                          value={typeof block === 'string' ? block : ''}
+                          onChange={(e) => updatePara(si, pi, e.target.value)}
+                          placeholder="Paragraph"
+                          rows={2}
+                          className={inputClass('resize-none flex-1')}
+                        />
+                        <button type="button" onClick={() => removePara(si, pi)} className="rounded-xl border border-slate-200 p-2 text-slate-400 hover:bg-white">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
-                <button type="button" onClick={() => addPara(si)} className="mt-1 flex items-center gap-1.5 text-xs text-primary hover:underline">
-                  <Plus className="h-3.5 w-3.5" /> Add paragraph
-                </button>
+                <div className="mt-1 flex flex-wrap gap-3">
+                  <button type="button" onClick={() => addPara(si)} className="flex items-center gap-1.5 text-xs text-primary hover:underline">
+                    <Plus className="h-3.5 w-3.5" /> Add paragraph
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => inlineFileRefs.current[si]?.click()}
+                    disabled={inlineUploading === si}
+                    className="flex items-center gap-1.5 text-xs text-primary hover:underline disabled:opacity-50"
+                  >
+                    <ImagePlus className="h-3.5 w-3.5" />
+                    {inlineUploading === si ? 'Uploading…' : 'Add image'}
+                  </button>
+                  <input
+                    ref={(el) => { inlineFileRefs.current[si] = el; }}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleInlineImageUpload(si, e)}
+                  />
+                </div>
               </div>
             ))}
             <button type="button" onClick={addSection} className="flex items-center gap-1.5 text-sm text-primary hover:underline">
@@ -214,7 +375,6 @@ export default function BlogForm({ post, onSave, onClose }) {
             </label>
           </section>
 
-          {/* Toggles */}
           <section className="flex flex-col gap-3">
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={form.featured} onChange={(e) => set('featured', e.target.checked)}
