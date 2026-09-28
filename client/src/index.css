@@ -11,6 +11,14 @@
 }
 
 @font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-latin.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: 'Newsreader';
   src: url('/fonts/newsreader-latin.woff2') format('woff2');
   font-weight: 200 800;
@@ -153,6 +161,10 @@ html {
   }
 }
 
+.home-hero[data-compact] .hero-sub {
+  display: none;
+}
+
 .hero-fade {
   animation: heroFade 200ms ease-out both;
 }
@@ -164,6 +176,34 @@ html {
 
 @media (prefers-reduced-motion: reduce) {
   .hero-fade {
+    animation: none;
+  }
+}
+
+/* Trip finder: one gentle pulse on the primary button after the last choice. */
+.finder-pulse {
+  animation: finderPulse 200ms ease-out 1;
+}
+
+@keyframes finderPulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212, 169, 106, 0.7); }
+  50% { transform: scale(1.04); box-shadow: 0 0 0 6px rgba(212, 169, 106, 0.35); }
+  100% { transform: scale(1); box-shadow: 0 0 0 10px rgba(212, 169, 106, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .finder-pulse {
+    animation: none;
+  }
+}
+
+/* Trip finder pickers: each question fades in. */
+.picker-fade {
+  animation: heroFade 150ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .picker-fade {
     animation: none;
   }
 }

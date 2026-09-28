@@ -19,6 +19,8 @@ module.exports = {
       fontFamily: {
         beauty: ['"Beauty Mountains"', 'cursive'],
         /** Editorial serif for headlines (self-hosted in /public/fonts) */
+        /** Home hero headline and trip finder (self-hosted variable font in /public/fonts) */
+        inter: ['Inter', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
         serif: ['Newsreader', 'Georgia', '"Times New Roman"', 'serif'],
         /** UI typography — Helvetica stack (falls back to system sans on platforms without Helvetica) */
         display: [
