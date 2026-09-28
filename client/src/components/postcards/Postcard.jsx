@@ -17,7 +17,7 @@ export function Stars({ value = 5, className = 'h-3.5 w-3.5' }) {
 function Stamp({ story, className = '' }) {
   return (
     <span className={`postcard-stamp block shrink-0 rotate-[3deg] ${className}`} aria-hidden>
-      <img src={story.stamp} alt="" loading="lazy" className="h-full w-full object-cover" />
+      <img src={story.stamp} alt="" className="h-full w-full object-cover" />
     </span>
   );
 }
@@ -46,24 +46,39 @@ export function planLink(story, preferredType) {
  * A traveller story as a porcelain postcard: message on the left; stamp, postmark and sender on the right
  * (on phones the stamp sits in the corner and the sender moves under the message).
  * `lines` clamps the message; when it is cut, "Read the full postcard" calls `onOpen`.
+ * With `fill`, the card takes its parent's height instead and the message fades out at the bottom
+ * (used by the full-screen photo stack, where the space depends on the screen).
  * Every card ends with "Plan a trip like this", guiding readers from someone's story to their own.
  */
-export default function Postcard({ story, lines = 6, onOpen, preferredType, className = '' }) {
-  const long = story.text.length > lines * 55;
+export default function Postcard({ story, lines = 6, fill = false, onOpen, preferredType, className = '' }) {
+  const long = fill ? story.text.length > 160 : story.text.length > lines * 55;
+  const clamp = fill
+    ? story.text.length < 320
+      ? {}
+      : { maskImage: 'linear-gradient(to bottom, #000 72%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, #000 72%, transparent)' }
+    : { display: '-webkit-box', WebkitLineClamp: lines, WebkitBoxOrient: 'vertical' };
+  // In the full-screen stack, short stories are set large like a pull quote so the card never looks empty.
+  const size = !fill
+    ? 'text-[15px] leading-relaxed sm:text-[17px]'
+    : story.text.length < 140
+      ? 'text-[clamp(1.15rem,2.6vw,2rem)] leading-snug justify-center'
+      : story.text.length < 320
+        ? 'text-[clamp(1rem,1.9vw,1.4rem)] leading-relaxed justify-center'
+        : 'text-[15px] leading-relaxed sm:text-[17px]';
   return (
-    <article className={`porcelain relative flex flex-col rounded-[22px] p-6 sm:flex-row sm:gap-7 sm:p-8 ${className}`}>
-      <div className="flex min-w-0 flex-1 flex-col pr-16 sm:pr-0">
+    <article className={`porcelain relative flex flex-col rounded-[22px] p-5 sm:flex-row sm:gap-7 sm:p-8 ${fill ? 'h-full' : ''} ${className}`}>
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col pr-16 sm:pr-0">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-dark/45">
           {story.place}
           {story.when ? ` · ${story.when}` : ''}
         </p>
-        <Quote className="mt-4 h-7 w-7 fill-accent/25 text-accent" strokeWidth={1.25} aria-hidden />
-        <blockquote className="mt-2 flex-1 text-[16px] leading-relaxed text-brand-dark/85 sm:text-[17px]">
-          <p className="whitespace-pre-line" style={{ display: '-webkit-box', WebkitLineClamp: lines, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        <Quote className="mt-3 h-6 w-6 shrink-0 fill-accent/25 text-accent sm:mt-4 sm:h-7 sm:w-7" strokeWidth={1.25} aria-hidden />
+        <blockquote className={`mt-2 flex flex-col italic text-brand-dark/85 ${size} ${fill ? 'min-h-0 flex-1 overflow-hidden' : 'flex-1'}`}>
+          <p className="overflow-hidden whitespace-pre-line" style={clamp}>
             {story.text}
           </p>
         </blockquote>
-        <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
+        <div className="mt-4 flex shrink-0 flex-wrap items-center gap-x-5 gap-y-2">
           <Link
             to={planLink(story, preferredType)}
             className={`inline-flex min-h-[40px] items-center gap-2 rounded-full border border-primary/25 bg-primary/[0.06] px-4 text-sm font-semibold text-primary transition-colors duration-150 hover:border-primary/50 hover:bg-primary/10 active:scale-[0.98] ${ring}`}
@@ -82,7 +97,7 @@ export default function Postcard({ story, lines = 6, onOpen, preferredType, clas
             </button>
           )}
         </div>
-        <div className="mt-5 flex items-end justify-between gap-3 border-t border-brand-dark/10 pt-4 sm:hidden">
+        <div className="mt-4 flex shrink-0 items-end justify-between gap-3 border-t border-brand-dark/10 pt-3 sm:hidden">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-dark/40">From</p>
             <p className="font-semibold text-brand-dark">{story.name}</p>
@@ -130,15 +145,19 @@ export function PostcardFull({ story }) {
   );
 }
 
-/** Trip filter chips; `tone` is 'dark' on the deep background, 'light' on cream. */
-export function StoryFilters({ filters, total, value, onChange, tone = 'light' }) {
+/** Trip filter chips; `tone` is 'dark' on the deep background, 'light' on cream. `singleLine` keeps them on one scrollable row. */
+export function StoryFilters({ filters, total, value, onChange, tone = 'light', singleLine = false }) {
   const idle =
     tone === 'dark'
       ? 'border-white/15 bg-white/[0.06] text-white/85 backdrop-blur hover:border-white/35 hover:bg-white/10'
       : 'border-brand-dark/15 bg-white/70 text-brand-dark hover:border-brand-dark/40';
   const active = tone === 'dark' ? 'border-white bg-white text-brand-dark' : 'border-primary bg-primary text-white';
   return (
-    <div className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Filter stories by trip">
+    <div
+      className={`scrollbar-hide flex max-w-full gap-2 overflow-x-auto pb-1 ${singleLine ? '' : '-mx-4 px-4 sm:mx-0 sm:flex-wrap sm:px-0'}`}
+      role="group"
+      aria-label="Filter stories by trip"
+    >
       {[{ value: 'all', label: 'All stories', count: total }, ...filters].map((f) => {
         const selected = value === f.value;
         return (

@@ -128,7 +128,7 @@ export default function FinderPicker({ open, anchorRef, tokenRef, stepKey, title
   const header = (
     <div className="flex items-start justify-between gap-3 px-5 pt-1 sm:px-6 sm:pt-5">
       <div className="min-w-0">
-        <h2 id="finder-picker-title" className="font-inter text-xl font-semibold tracking-tight text-brand-dark sm:text-[22px]">
+        <h2 id="finder-picker-title" className="font-sans text-xl font-semibold tracking-tight text-brand-dark sm:text-[22px]">
           {title}
         </h2>
         {subtitle ? <p className="mt-1 text-sm text-brand-dark/60">{subtitle}</p> : null}
@@ -158,7 +158,7 @@ export default function FinderPicker({ open, anchorRef, tokenRef, stepKey, title
   return createPortal(
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-[60] font-inter">
+        <div className="fixed inset-0 z-[60] font-sans">
           <motion.div
             className={`absolute inset-0 ${phone ? 'bg-brand-dark/55' : 'bg-brand-dark/25'}`}
             onClick={onClose}

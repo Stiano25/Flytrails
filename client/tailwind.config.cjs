@@ -15,14 +15,15 @@ module.exports = {
         'brand-dark': '#0D1B2A',
         'brand-light': '#FFFFFF',
         'brand-bg': '#F8F5F0',
+        /** Orange from the Flytrails logo; pair with brand-dark text for contrast. */
+        'brand-orange': '#EE921E',
       },
       fontFamily: {
-        /** Site typeface: Inter, self-hosted variable font in /public/fonts (Helvetica stack as fallback). */
-        sans: ['Inter', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
-        display: ['Inter', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
-        inter: ['Inter', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
-        /** Headline face: tall condensed Oswald for the hero word and section titles */
-        headline: ['Oswald', '"Arial Narrow"', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+        /** Site typeface: Poppins, self-hosted in /public/fonts (Helvetica stack as fallback). */
+        sans: ['Poppins', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
+        display: ['Poppins', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
+        /** Hero word "Adventures": MonteCarlo script, self-hosted. */
+        script: ['MonteCarlo', '"Brush Script MT"', 'cursive'],
       },
       keyframes: {
         fadeIn: {

@@ -75,7 +75,6 @@ export function useStories() {
 
     const rated = (reviews || []).filter((r) => r.rating);
     const average = rated.length ? rated.reduce((sum, r) => sum + r.rating, 0) / rated.length : 0;
-    const distribution = [5, 4, 3, 2, 1].map((stars) => ({ stars, count: rated.filter((r) => r.rating === stars).length }));
 
     const counts = {};
     stories.forEach((s) => s.types.forEach((t) => (counts[t] = (counts[t] || 0) + 1)));
@@ -84,6 +83,6 @@ export function useStories() {
       .sort((a, b) => b[1] - a[1])
       .map(([value, count]) => ({ value, count, label: FILTER_LABELS[value] || findTripType(value).label }));
 
-    return { stories, filters, average, ratedCount: rated.length, distribution, loading: loadingT || loadingR };
+    return { stories, filters, average, ratedCount: rated.length, loading: loadingT || loadingR };
   }, [testimonials, reviews, loadingT, loadingR]);
 }

@@ -1,31 +1,29 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight, ChevronLeft, ChevronRight, Luggage } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStories } from '../postcards/stories.js';
-import Postcard, { PostcardFull, Stars, StoriesBackdrop, StoryFilters } from '../postcards/Postcard.jsx';
+import { PostcardFull, Stars, StoriesBackdrop, StoryFilters } from '../postcards/Postcard.jsx';
+import PhotoStack from '../postcards/PhotoStack.jsx';
 import FinderPicker from './FinderPicker.jsx';
 
 const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
 
 /**
- * "Stories from the trail": reviews as a stack of porcelain postcards over a blurred slice of the hero photo.
- * One postcard at a time (swipe, buttons or arrow keys) with two cards stacked neatly behind it.
- * Filters follow the hero trip finder, every postcard offers "Plan a trip like this", and the section ends
- * by sending people back to plan their own trip.
+ * "Stories from the trail": one full screen, like the hero. Reviews sit in a hand-held pile of porcelain
+ * postcards over a blurred slice of the hero photo; swipe (or Next) sends the top card to the back.
+ * The section always renders at full height (a blank pile while reviews load) so the page never jumps,
+ * filters follow the hero trip finder, and every postcard offers "Plan a trip like this".
  */
 export default function TestimonialsSection() {
-  const { stories, filters, average, ratedCount } = useStories();
-  const reduce = useReducedMotion();
+  const { stories, filters, average, ratedCount, loading } = useStories();
   const [filter, setFilter] = useState('all');
   const [fromPlan, setFromPlan] = useState(false);
-  const [index, setIndex] = useState(0);
-  const [direction, setDirection] = useState(1);
+  const [position, setPosition] = useState(0);
   const [openStory, setOpenStory] = useState(null);
+  const stackRef = useRef(null);
   const lastOpener = useRef(null);
 
-  const shown = filter === 'all' ? stories : stories.filter((s) => s.types.includes(filter));
-  const current = shown[Math.min(index, shown.length - 1)];
+  const shown = useMemo(() => (filter === 'all' ? stories : stories.filter((s) => s.types.includes(filter))), [stories, filter]);
   const activeLabel = filters.find((f) => f.value === filter)?.label;
 
   // When someone picks a trip type in the hero finder, show matching postcards (if we have any).
@@ -35,23 +33,17 @@ export default function TestimonialsSection() {
       if (e.detail.type && filters.some((f) => f.value === e.detail.type)) {
         setFilter(e.detail.type);
         setFromPlan(true);
-        setIndex(0);
       }
     };
     window.addEventListener('flytrails:finder', onFinder);
     return () => window.removeEventListener('flytrails:finder', onFinder);
   }, [filters]);
 
-  function go(step) {
-    if (!shown.length) return;
-    setDirection(step);
-    setIndex((i) => (i + step + shown.length) % shown.length);
-  }
+  const onChange = useCallback((i) => setPosition(Math.max(0, i)), []);
 
   function chooseFilter(value) {
     setFilter(value);
     setFromPlan(false);
-    setIndex(0);
   }
 
   function openFull(story) {
@@ -64,150 +56,114 @@ export default function TestimonialsSection() {
     requestAnimationFrame(() => lastOpener.current?.focus({ preventScroll: true }));
   }
 
-  if (!stories.length || !current) return null;
+  if (!loading && !stories.length) return null;
 
-  const slide = reduce ? 0 : 60;
+  const space = 'mt-[clamp(0.75rem,2.6svh,1.75rem)]';
 
   return (
-    <section aria-labelledby="postcards-title" className="relative isolate overflow-hidden py-20 text-white md:py-28">
+    <section
+      aria-labelledby="postcards-title"
+      className="relative isolate flex h-screen min-h-[34rem] flex-col overflow-hidden text-white supports-[height:100svh]:h-[100svh] [@media(max-height:500px)]:min-h-0"
+    >
       <StoriesBackdrop />
-      <div className="relative mx-auto max-w-6xl px-4 md:px-6">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">Postcards from our travellers</p>
-          <h2 id="postcards-title" className="mt-3 font-headline text-5xl font-semibold tracking-tight md:text-6xl">
-            Stories from the trail
+      <div className="mx-auto flex h-full w-full max-w-4xl flex-col px-4 pb-[clamp(1rem,3svh,2rem)] pt-[clamp(1.5rem,6svh,4rem)] md:px-6">
+        <header className="text-center">
+          <h2 id="postcards-title" className="text-[clamp(1.9rem,min(7vw,5.5svh),3.25rem)] font-semibold leading-tight tracking-tight">
+            Stories from the <span className="font-light italic">trail</span>
           </h2>
           {average > 0 && (
-            <div className="glass-panel mx-auto mt-6 inline-flex flex-wrap items-center justify-center gap-x-5 gap-y-2 rounded-2xl px-5 py-3">
-              <span className="font-headline text-4xl font-semibold leading-none">{average.toFixed(1)}</span>
-              <span className="text-left">
-                <Stars value={Math.round(average)} className="h-4 w-4" />
-                <span className="block text-sm text-white/70">from {ratedCount} reviews</span>
+            <p className="mt-2 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-sm text-white/75 [@media(max-height:500px)]:hidden">
+              <Stars value={Math.round(average)} className="h-3.5 w-3.5" />
+              <span>
+                <strong className="font-semibold text-white">{average.toFixed(1)}</strong> · {ratedCount} reviews
               </span>
+              <span aria-hidden>·</span>
               <Link
                 to="/reviews"
-                className={`inline-flex items-center gap-1 text-sm font-semibold text-white underline decoration-accent decoration-2 underline-offset-4 hover:text-white/80 ${ring}`}
+                className={`inline-flex items-center gap-1 font-medium text-white underline decoration-brand-orange decoration-2 underline-offset-4 hover:text-white/80 ${ring}`}
               >
-                Read them all
-                <ArrowRight className="h-4 w-4" aria-hidden />
+                Read all
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden />
               </Link>
-            </div>
+            </p>
           )}
-        </div>
+        </header>
 
         {filters.length > 1 && (
-          <div className="mx-auto mt-8 flex max-w-3xl flex-col items-center gap-3">
-            <StoryFilters filters={filters} total={stories.length} value={filter} onChange={chooseFilter} tone="dark" />
+          // Short landscape screens: skip the filters so the postcard keeps enough room.
+          <div className={`${space} flex flex-col items-center gap-1.5 [@media(max-height:500px)]:hidden`}>
+            <StoryFilters filters={filters} total={stories.length} value={filter} onChange={chooseFilter} tone="dark" singleLine />
             {fromPlan && activeLabel && (
-              <p className="text-sm text-white/65" aria-live="polite">
-                Showing {activeLabel.toLowerCase()} stories to match your plan.{' '}
+              <p className="text-xs text-white/65" aria-live="polite">
+                Showing {activeLabel.toLowerCase()} stories for your plan ·{' '}
                 <button type="button" onClick={() => chooseFilter('all')} className={`font-semibold text-white underline underline-offset-4 ${ring}`}>
-                  Show all
+                  show all
                 </button>
               </p>
             )}
           </div>
         )}
 
-        {/* The stack: two blank cards squared up neatly behind the current postcard. */}
         <div
-          className="relative mx-auto mt-12 max-w-3xl"
+          className={`${space} relative mx-auto min-h-0 w-full max-w-3xl flex-1 pb-4 focus-visible:outline-none`}
           role="group"
           aria-roledescription="carousel"
-          aria-label="Traveller postcards"
+          aria-label={`Traveller postcards, ${position + 1} of ${shown.length || 1}`}
           tabIndex={0}
           onKeyDown={(e) => {
-            if (e.key === 'ArrowRight') go(1);
-            if (e.key === 'ArrowLeft') go(-1);
+            if (e.key === 'ArrowRight') stackRef.current?.next();
+            if (e.key === 'ArrowLeft') stackRef.current?.prev();
           }}
         >
-          {shown.length > 1 && (
-            <>
-              <span className="porcelain absolute inset-x-10 -bottom-6 top-6 rounded-[22px] opacity-40" aria-hidden />
-              <span className="porcelain absolute inset-x-5 -bottom-3 top-3 rounded-[22px] opacity-70" aria-hidden />
-            </>
+          {shown.length ? (
+            <PhotoStack
+              ref={stackRef}
+              stories={shown}
+              onOpen={openFull}
+              onChange={onChange}
+              preferredType={filter !== 'all' ? filter : undefined}
+            />
+          ) : (
+            // Reserved space while reviews load: a blank pile, so nothing below jumps when they arrive.
+            <div className="relative h-full" aria-hidden>
+              <span className="porcelain absolute inset-0 translate-y-3 rotate-[2deg] rounded-[22px] opacity-60" />
+              <span className="porcelain absolute inset-0 animate-pulse rounded-[22px]" />
+            </div>
           )}
-          <AnimatePresence mode="popLayout" initial={false} custom={direction}>
-            <motion.div
-              key={current.id}
-              custom={direction}
-              initial={{ opacity: 0, x: direction * slide }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -direction * slide }}
-              transition={{ duration: reduce ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}
-              drag={reduce || shown.length < 2 ? false : 'x'}
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.35}
-              onDragEnd={(_, info) => {
-                if (info.offset.x < -70) go(1);
-                else if (info.offset.x > 70) go(-1);
-              }}
-              className="relative cursor-grab active:cursor-grabbing"
-              aria-label={`Postcard ${Math.min(index, shown.length - 1) + 1} of ${shown.length}, from ${current.name}`}
-            >
-              <Postcard
-                story={current}
-                lines={7}
-                onOpen={openFull}
-                preferredType={filter !== 'all' ? filter : undefined}
-                className="sm:min-h-[21rem]"
-              />
-            </motion.div>
-          </AnimatePresence>
         </div>
 
-        {shown.length > 1 && (
-          <div className="mx-auto mt-12 flex max-w-3xl items-center gap-4">
-            <button
-              type="button"
-              onClick={() => go(-1)}
-              className={`inline-flex min-h-[48px] shrink-0 items-center gap-1.5 rounded-full border border-white/20 bg-white/[0.06] px-4 text-sm font-medium text-white backdrop-blur transition-colors duration-150 hover:bg-white/15 active:scale-95 ${ring}`}
-            >
-              <ChevronLeft className="h-5 w-5" aria-hidden />
-              <span className="hidden sm:inline">Previous</span>
-              <span className="sr-only sm:hidden">Previous story</span>
-            </button>
-            <div className="flex flex-1 items-center gap-3">
-              <span className="text-sm tabular-nums text-white/70" aria-live="polite">
-                {String(Math.min(index, shown.length - 1) + 1).padStart(2, '0')} / {String(shown.length).padStart(2, '0')}
-              </span>
-              <span className="relative h-px flex-1 bg-white/15" aria-hidden>
-                <span
-                  className="absolute inset-y-0 left-0 bg-accent transition-[width] duration-300 motion-reduce:transition-none"
-                  style={{ width: `${((Math.min(index, shown.length - 1) + 1) / shown.length) * 100}%` }}
-                />
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => go(1)}
-              className={`inline-flex min-h-[48px] shrink-0 items-center gap-1.5 rounded-full bg-white px-5 text-sm font-semibold text-brand-dark transition-colors duration-150 hover:bg-white/90 active:scale-95 ${ring}`}
-            >
-              Next story
-              <ChevronRight className="h-5 w-5" aria-hidden />
-            </button>
+        <div className={`${space} mx-auto flex w-full max-w-3xl items-center gap-3`}>
+          <button
+            type="button"
+            onClick={() => stackRef.current?.prev()}
+            disabled={shown.length < 2}
+            className={`inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full border border-white/20 bg-white/[0.06] px-3.5 text-sm font-medium text-white backdrop-blur transition-colors duration-150 hover:bg-white/15 active:scale-95 disabled:opacity-40 sm:px-4 ${ring}`}
+          >
+            <ChevronLeft className="h-5 w-5" aria-hidden />
+            <span className="hidden sm:inline">Previous</span>
+            <span className="sr-only sm:hidden">Previous story</span>
+          </button>
+          <div className="flex flex-1 items-center gap-3">
+            <span className="text-sm tabular-nums text-white/70" aria-live="polite">
+              {String(position + 1).padStart(2, '0')} / {String(shown.length || 0).padStart(2, '0')}
+            </span>
+            <span className="relative h-px flex-1 bg-white/15" aria-hidden>
+              <span
+                className="absolute inset-y-0 left-0 bg-brand-orange transition-[width] duration-300 motion-reduce:transition-none"
+                style={{ width: `${shown.length ? ((position + 1) / shown.length) * 100 : 0}%` }}
+              />
+            </span>
+            <span className="text-xs text-white/55 sm:hidden">Swipe</span>
           </div>
-        )}
-
-        {/* Guide the next step: from reading someone else's story to starting your own. */}
-        <div className="glass-panel mx-auto mt-14 flex max-w-3xl flex-col items-center gap-5 rounded-3xl px-6 py-7 text-center sm:flex-row sm:justify-between sm:text-left">
-          <div>
-            <p className="text-lg font-semibold">Your postcard starts with three taps.</p>
-            <p className="mt-1 text-[15px] text-white/65">Tell us the trip, the month and who’s coming. We plan the rest.</p>
-          </div>
-          <div className="flex shrink-0 flex-col items-center gap-3 sm:items-end">
-            <Link
-              to="/?plan=1"
-              className="inline-flex min-h-[48px] items-center gap-2 rounded-full bg-accent px-6 text-[15px] font-semibold text-brand-dark transition-colors duration-150 hover:bg-[#e0bb82] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-            >
-              <Luggage className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-              Plan my trip
-            </Link>
-            <Link to="/reviews" className={`inline-flex items-center gap-1 text-sm font-medium text-white/75 underline-offset-4 hover:text-white hover:underline ${ring}`}>
-              Read all {stories.length} stories
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-          </div>
+          <button
+            type="button"
+            onClick={() => stackRef.current?.next()}
+            disabled={shown.length < 2}
+            className={`inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full bg-white px-4 text-sm font-semibold text-brand-dark transition-colors duration-150 hover:bg-white/90 active:scale-95 disabled:opacity-40 sm:px-5 ${ring}`}
+          >
+            Next story
+            <ChevronRight className="h-5 w-5" aria-hidden />
+          </button>
         </div>
       </div>
 

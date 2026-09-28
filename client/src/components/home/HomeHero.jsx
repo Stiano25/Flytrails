@@ -69,11 +69,11 @@ export default function HomeHero() {
       />
 
       <div className="hero-fade mx-auto flex w-full max-w-5xl flex-col items-center justify-center px-4 pb-[clamp(0.25rem,3.5svh,2.5rem)] pt-[calc(var(--nav-h)+clamp(0.5rem,2.5svh,1.5rem))] text-center md:px-6">
-        <h1 id="home-hero-title" className="font-inter text-white text-balance [text-shadow:0_2px_24px_rgba(13,27,42,0.35)]">
-          <span className="block font-headline text-[calc(clamp(4rem,min(21vw,15svh),10rem)*var(--headline-scale,1))] font-semibold leading-[0.95] tracking-[-0.01em]">
+        <h1 id="home-hero-title" className="font-sans text-white text-balance [text-shadow:0_2px_24px_rgba(13,27,42,0.35)]">
+          <span className="block font-script text-[calc(clamp(5rem,min(24vw,17svh),11.5rem)*var(--headline-scale,1))] font-normal leading-[1.05]">
             Adventures
           </span>
-          <span className="mt-[0.35em] block text-[calc(clamp(1.3rem,min(5.4vw,4.4svh),2.5rem)*var(--headline-scale,1))] font-normal leading-tight tracking-[-0.01em] text-white/90">
+          <span className="mt-[0.15em] block text-[calc(clamp(1.2rem,min(5vw,4svh),2.25rem)*var(--headline-scale,1))] font-normal italic leading-tight text-white/90">
             planned properly, memories guaranteed.
           </span>
         </h1>
