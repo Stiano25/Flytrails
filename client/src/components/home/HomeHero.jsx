@@ -31,15 +31,24 @@ export default function HomeHero() {
       />
 
       <div className="hero-fade mx-auto flex w-full max-w-4xl flex-col items-center justify-center px-4 pb-10 pt-[calc(var(--nav-h)+1.5rem)] text-center md:px-6 [@media(max-height:500px)]:pb-4 [@media(max-height:500px)]:pt-[calc(var(--nav-h)+0.5rem)]">
+        <figure className="max-w-4xl">
+          <blockquote
+            className="font-serif text-[clamp(2rem,min(5.6vw,7.5svh),4.25rem)] font-normal leading-[1.1] tracking-[-0.01em] text-white text-balance [text-shadow:0_2px_24px_rgba(13,27,42,0.35)]"
+          >
+            <p>
+              &ldquo;There is a kind of magicness about going far away and then coming back all changed.&rdquo;
+            </p>
+          </blockquote>
+          <figcaption className="mt-5 font-sans text-xs font-medium uppercase tracking-[0.2em] text-accent md:text-sm [@media(max-height:500px)]:mt-2">
+            Kate Douglas Wiggin
+          </figcaption>
+        </figure>
         <h1
           id="home-hero-title"
-          className="font-serif text-[clamp(2.75rem,min(9vw,12svh),6.5rem)] font-medium leading-[1.02] tracking-[-0.01em] text-white text-balance [text-shadow:0_2px_24px_rgba(13,27,42,0.35)]"
+          className="mt-6 max-w-xl font-sans text-lg font-light leading-relaxed text-white/90 md:text-xl [@media(max-height:500px)]:mt-2"
         >
-          Your Passport to Paradise
-        </h1>
-        <p className="mt-5 max-w-xl font-sans text-lg font-light leading-relaxed text-white/90 md:text-xl [@media(max-height:500px)]:mt-2">
           Tailor-made trips and group adventures, planned with care.
-        </p>
+        </h1>
         <div className="mt-9 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:justify-center sm:gap-4 [@media(max-height:500px)]:mt-4">
           <Link
             to="/custom-tours"
