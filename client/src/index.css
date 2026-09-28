@@ -10,6 +10,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Newsreader';
+  src: url('/fonts/newsreader-latin.woff2') format('woff2');
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -131,12 +139,12 @@ html {
   border-radius: 8px;
 }
 
-/* Home hero: exactly one screen below the sticky navbar (logo h-11/h-12 + py-3 + 1px border). */
+/* Home hero: fills the whole screen; the navbar floats over it on the home page. */
 .home-hero {
   --nav-h: 71px;
-  height: calc(100vh - var(--nav-h));
-  height: calc(100svh - var(--nav-h));
-  min-height: 17rem; /* landscape phones: never squeeze the copy below this */
+  height: 100vh;
+  height: 100svh;
+  min-height: 24rem; /* landscape phones: never squeeze the copy below this */
 }
 
 @media (min-width: 768px) {

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { NavLink, Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Home,
@@ -40,7 +40,7 @@ const aboutLinks = [
   { to: '/about', label: 'About', Icon: Info },
 ];
 
-function Dropdown({ label, items, openMenu, setOpenMenu }) {
+function Dropdown({ label, items, openMenu, setOpenMenu, overlay }) {
   const isOpen = openMenu === label;
 
   return (
@@ -51,7 +51,9 @@ function Dropdown({ label, items, openMenu, setOpenMenu }) {
     >
       <button
         type="button"
-        className="flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium text-neutral-700 transition hover:text-primary"
+        className={`flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium transition ${
+          overlay ? 'text-white/90 hover:text-white' : 'text-neutral-700 hover:text-primary'
+        }`}
       >
         {label}
         <ChevronDown className={`h-4 w-4 transition ${isOpen ? 'rotate-180' : ''}`} />
@@ -77,22 +79,42 @@ function Dropdown({ label, items, openMenu, setOpenMenu }) {
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const [openMenu, setOpenMenu] = useState('');
+  const lastY = useRef(0);
   const whatsappHref = useWhatsappLink();
+  const isHome = useLocation().pathname === '/';
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 12);
+      // Home only: tuck the bar away while scrolling down, bring it back as soon as the user scrolls up.
+      if (Math.abs(y - lastY.current) > 6) {
+        setHidden(isHome && y > lastY.current && y > 120);
+        lastY.current = y;
+      }
+    };
+    lastY.current = window.scrollY;
+    setHidden(false);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [isHome]);
+
+  /** Transparent over the home hero until the page moves or the mobile menu opens. */
+  const overlay = isHome && !scrolled && !open;
 
   return (
     <header
-      className={`sticky top-0 z-50 border-b transition-all duration-300 ${
-        scrolled
-          ? 'border-white/35 bg-white/55 shadow-lg shadow-primary/5 backdrop-blur-xl'
-          : 'border-white/25 bg-white/45 backdrop-blur-xl'
+      className={`${isHome ? 'fixed inset-x-0' : 'sticky'} top-0 z-50 border-b transition-all duration-300 ${
+        hidden && !open && !openMenu ? '-translate-y-full' : 'translate-y-0'
+      } ${
+        overlay
+          ? 'border-transparent bg-transparent'
+          : scrolled
+            ? 'border-white/35 bg-white/80 shadow-lg shadow-primary/5 backdrop-blur-xl'
+            : 'border-white/25 bg-white/45 backdrop-blur-xl'
       }`}
     >
       <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6" aria-label="Main">
@@ -100,7 +122,7 @@ export default function Navbar() {
           <img 
             src="/images/flytrailsnewlogo.png"
             alt="Flytrails Logo" 
-            className="h-11 w-auto md:h-12" 
+            className={`h-11 w-auto transition duration-300 md:h-12 ${overlay ? 'brightness-0 invert' : ''}`}
           />
         </Link>
 
@@ -110,9 +132,13 @@ export default function Navbar() {
               {({ isActive }) => (
                 <motion.span
                   className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-primary/15 text-primary shadow-inner'
-                      : 'text-neutral-700 hover:text-primary'
+                    overlay
+                      ? isActive
+                        ? 'bg-white/15 text-white'
+                        : 'text-white/90 hover:text-white'
+                      : isActive
+                        ? 'bg-primary/15 text-primary shadow-inner'
+                        : 'text-neutral-700 hover:text-primary'
                   }`}
                   whileHover={{ y: -2, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -124,9 +150,9 @@ export default function Navbar() {
               )}
             </NavLink>
           ))}
-          <Dropdown label="Explore" items={exploreLinks} openMenu={openMenu} setOpenMenu={setOpenMenu} />
-          <Dropdown label="Discover" items={discoverLinks} openMenu={openMenu} setOpenMenu={setOpenMenu} />
-          <Dropdown label="Community" items={aboutLinks} openMenu={openMenu} setOpenMenu={setOpenMenu} />
+          <Dropdown overlay={overlay} label="Explore" items={exploreLinks} openMenu={openMenu} setOpenMenu={setOpenMenu} />
+          <Dropdown overlay={overlay} label="Discover" items={discoverLinks} openMenu={openMenu} setOpenMenu={setOpenMenu} />
+          <Dropdown overlay={overlay} label="Community" items={aboutLinks} openMenu={openMenu} setOpenMenu={setOpenMenu} />
         </div>
 
         <div className="flex items-center gap-2">
@@ -140,7 +166,11 @@ export default function Navbar() {
           </a>
           <button
             type="button"
-            className="inline-flex items-center justify-center rounded-full border border-white/40 bg-white/30 p-2.5 text-brand-dark backdrop-blur-sm transition hover:bg-white/50 lg:hidden"
+            className={`inline-flex items-center justify-center rounded-full border p-2.5 backdrop-blur-sm transition lg:hidden ${
+              overlay
+                ? 'border-white/40 bg-white/10 text-white hover:bg-white/20'
+                : 'border-white/40 bg-white/30 text-brand-dark hover:bg-white/50'
+            }`}
             aria-expanded={open}
             aria-controls="mobile-menu"
             onClick={() => setOpen((v) => !v)}
