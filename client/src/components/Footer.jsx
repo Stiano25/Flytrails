@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Luggage, Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
+import { Facebook, Instagram, Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
 import { SITE_EMAIL, SITE_PHONE_DISPLAY } from '../config.js';
 import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
 import { useSiteContent } from '../hooks/useApi.js';
@@ -55,19 +55,11 @@ export default function Footer() {
   return (
     <footer className="bg-brand-dark text-white">
       <div className="mx-auto max-w-6xl px-4 md:px-6">
-        {/* One final step before the links. */}
         <div className="flex flex-col items-start gap-5 border-b border-white/10 py-10 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <img src="/images/flytrailsnewlogo.png" alt="Flytrails" className="h-9 w-auto brightness-0 invert" />
             <p className="mt-3 text-[15px] italic text-white/70">{content?.site_tagline || 'Explore. Connect. Experience.'}</p>
           </div>
-          <Link
-            to="/?plan=1"
-            className={`inline-flex min-h-[48px] items-center gap-2 rounded-full bg-brand-orange px-6 text-[15px] font-semibold text-brand-dark transition-colors hover:bg-[#f4a53f] ${ring}`}
-          >
-            <Luggage className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-            Plan my trip
-          </Link>
         </div>
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-10 py-10 md:grid-cols-4">

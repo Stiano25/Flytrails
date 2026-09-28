@@ -7,10 +7,25 @@ const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outlin
 const formatDate = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 const monthYear = (iso) => new Date(iso).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
 
-/** Finder trip type for a trip's category ("Hiking" -> "hiking"), if there is one. */
-const typeFor = (trip) => findTripType(String(trip.category || '').toLowerCase())?.value;
+const CATEGORY_HINTS = [
+  ['hiking', /hik|trek|mountain|climb/],
+  ['camping', /camp/],
+  ['safari', /safari|game/],
+  ['beach', /beach|island|coast/],
+  ['international', /international|abroad/],
+  ['honeymoon', /honeymoon/],
+  ['family', /family/],
+  ['group', /group|corporate|team/],
+  ['halal', /halal/],
+];
 
-function TripCard({ trip, past }) {
+/** Finder trip type for a trip's admin category ("Group Experiences" -> "group"), if there is one. */
+export function typeFor(trip) {
+  const category = String(trip.category || '').toLowerCase();
+  return findTripType(category)?.value || CATEGORY_HINTS.find(([, re]) => re.test(category))?.[0];
+}
+
+export function TripCard({ trip, past }) {
   const planHref = typeFor(trip) ? `/?plan=1&type=${typeFor(trip)}` : '/?plan=1';
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-[22px] border border-brand-dark/10 bg-white shadow-[0_18px_40px_-28px_rgba(13,27,42,0.5)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_24px_48px_-26px_rgba(13,27,42,0.55)]">
@@ -36,7 +51,7 @@ function TripCard({ trip, past }) {
           ) : (
             <>
               <CalendarDays className="h-3.5 w-3.5" aria-hidden />
-              {formatDate(trip.nextDeparture)}
+              {trip.nextDeparture ? formatDate(trip.nextDeparture) : 'Dates on request'}
             </>
           )}
         </span>

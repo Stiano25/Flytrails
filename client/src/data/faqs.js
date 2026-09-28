@@ -80,6 +80,18 @@ export const FALLBACK_FAQS = [
     a: 'Yes. Upgrades are prorated for the months left in your membership year.',
     action: { label: 'Compare memberships', to: '/membership' },
   },
+  {
+    group: 'membership',
+    q: 'Do member discounts stack with early-bird prices?',
+    a: 'Member discounts apply to the public trip price, and we’ll always quote you the best rate you’re eligible for.',
+    action: { label: 'Browse trips', to: '/trips' },
+  },
+  {
+    group: 'membership',
+    q: 'Is the community forum moderated?',
+    a: 'Yes. Our team keeps discussions respectful, helpful and free of spam.',
+    action: { label: 'Join free', to: '/membership' },
+  },
 ];
 
 const GROUP_HINTS = [

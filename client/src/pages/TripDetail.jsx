@@ -15,12 +15,13 @@ import { useTrip } from '../hooks/useApi.js';
 import ReserveModal from '../components/ReserveModal.jsx';
 import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
 import { isTripExpired } from '../utils/tripStatus.js';
+import NextStep from '../components/site/NextStep.jsx';
 
 function formatKes(n) {
   return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', maximumFractionDigits: 0 }).format(n);
 }
 
-const sectionClass = 'glass-surface rounded-3xl p-6 md:p-8';
+const sectionClass = 'rounded-[22px] border border-brand-dark/10 bg-white p-6 md:p-8';
 const accordionBtn =
   'flex w-full items-center justify-between gap-3 bg-white/35 px-4 py-3.5 text-left font-semibold text-brand-dark backdrop-blur-sm transition hover:bg-white/50';
 
@@ -44,16 +45,16 @@ export default function TripDetail() {
     <div className="relative bg-transparent">
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/[0.04] via-transparent to-transparent" />
       <div className="relative h-[min(52vh,460px)] w-full overflow-hidden">
-        <img src={trip.image} alt={trip.title} className="h-full w-full object-cover animate-video-effect" />
+        <img src={trip.image} alt={trip.title} className="h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/90 via-brand-dark/35 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12">
-          <h1 className="max-w-4xl font-display text-3xl font-bold text-brand-light drop-shadow md:text-5xl lg:text-6xl">
+          <h1 className="max-w-4xl text-3xl font-semibold tracking-tight text-brand-light drop-shadow md:text-5xl lg:text-6xl">
             {trip.title}
           </h1>
         </div>
       </div>
 
-      <nav className="relative mx-auto flex max-w-7xl flex-wrap items-center gap-1 px-4 py-4 text-sm font-light text-brand-dark/70 md:px-6" aria-label="Breadcrumb">
+      <nav className="relative mx-auto flex max-w-7xl flex-wrap items-center gap-1 px-4 py-4 text-sm font-normal text-brand-dark/70 md:px-6" aria-label="Breadcrumb">
         <Link to="/" className="hover:text-primary">
           Home
         </Link>
@@ -68,26 +69,26 @@ export default function TripDetail() {
       <div className="relative mx-auto grid max-w-7xl gap-10 px-4 pb-16 lg:grid-cols-[1fr_340px] lg:items-start lg:px-6">
         <div>
           <section className={sectionClass}>
-            <h2 className="font-display text-2xl font-bold text-brand-dark">Overview</h2>
-            <p className="mt-4 font-light leading-relaxed text-brand-dark/85">{trip.description}</p>
+            <h2 className="text-2xl font-semibold tracking-tight text-brand-dark">Overview</h2>
+            <p className="mt-4 font-normal leading-relaxed text-brand-dark/85">{trip.description}</p>
           </section>
 
           <section className={`${sectionClass} mt-8`}>
-            <h2 className="font-display text-2xl font-bold text-brand-dark">Trip highlights</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-brand-dark">Trip highlights</h2>
             <ul className="mt-4 space-y-3">
               {trip.highlights.map((h) => (
                 <li key={h} className="flex gap-3 text-brand-dark/90">
                   <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
                     <Check className="h-4 w-4" strokeWidth={2.5} aria-hidden />
                   </span>
-                  <span className="font-light">{h}</span>
+                  <span className="font-normal">{h}</span>
                 </li>
               ))}
             </ul>
           </section>
 
           <section className={`${sectionClass} mt-8`}>
-            <h2 className="font-display text-2xl font-bold text-brand-dark">Itinerary</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-brand-dark">Itinerary</h2>
             <div className="mt-4 space-y-2">
               {trip.itinerary.map((d, i) => (
                 <div key={d.day} className="overflow-hidden rounded-2xl border border-white/40 bg-white/25 backdrop-blur-md">
@@ -106,7 +107,7 @@ export default function TripDetail() {
                     />
                   </button>
                   {openDay === i && (
-                    <p className="border-t border-brand-dark/10 px-4 py-3 text-sm font-light text-brand-dark/80">{d.description}</p>
+                    <p className="border-t border-brand-dark/10 px-4 py-3 text-sm font-normal text-brand-dark/80">{d.description}</p>
                   )}
                 </div>
               ))}
@@ -115,10 +116,10 @@ export default function TripDetail() {
 
           <section className="mt-8 grid gap-6 md:grid-cols-2">
             <div className={sectionClass}>
-              <h3 className="font-display text-xl font-bold text-brand-dark">What&apos;s included</h3>
+              <h3 className="text-xl font-semibold tracking-tight text-brand-dark">What&apos;s included</h3>
               <ul className="mt-4 space-y-2">
                 {trip.included.map((x) => (
-                  <li key={x} className="flex gap-2 text-sm font-light text-brand-dark/85">
+                  <li key={x} className="flex gap-2 text-sm font-normal text-brand-dark/85">
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
                     {x}
                   </li>
@@ -126,10 +127,10 @@ export default function TripDetail() {
               </ul>
             </div>
             <div className={sectionClass}>
-              <h3 className="font-display text-xl font-bold text-brand-dark">Not included</h3>
+              <h3 className="text-xl font-semibold tracking-tight text-brand-dark">Not included</h3>
               <ul className="mt-4 space-y-2">
                 {trip.notIncluded.map((x) => (
-                  <li key={x} className="flex gap-2 text-sm font-light text-brand-dark/85">
+                  <li key={x} className="flex gap-2 text-sm font-normal text-brand-dark/85">
                     <X className="mt-0.5 h-4 w-4 shrink-0 text-brand-dark/35" aria-hidden />
                     {x}
                   </li>
@@ -139,7 +140,7 @@ export default function TripDetail() {
           </section>
 
           <section className={`${sectionClass} mt-8`}>
-            <h2 className="font-display text-2xl font-bold text-brand-dark">FAQs</h2>
+            <h2 className="text-2xl font-semibold tracking-tight text-brand-dark">FAQs</h2>
             <div className="mt-4 space-y-2">
               {trip.faqs.map((f, i) => (
                 <div key={f.question} className="overflow-hidden rounded-2xl border border-white/40 bg-white/25 backdrop-blur-md">
@@ -156,7 +157,7 @@ export default function TripDetail() {
                     />
                   </button>
                   {openFaq === i && (
-                    <p className="border-t border-brand-dark/10 px-4 py-3 text-sm font-light text-brand-dark/75">{f.answer}</p>
+                    <p className="border-t border-brand-dark/10 px-4 py-3 text-sm font-normal text-brand-dark/75">{f.answer}</p>
                   )}
                 </div>
               ))}
@@ -165,11 +166,11 @@ export default function TripDetail() {
         </div>
 
         <aside className="lg:sticky lg:top-24">
-          <div className="glass-surface-strong rounded-3xl p-6">
-            <p className="text-xs font-extralight uppercase tracking-wider text-brand-dark/55">From</p>
-            <p className="font-display text-3xl font-bold text-primary">{formatKes(trip.price)}</p>
-            <p className="text-sm font-extralight text-brand-dark/60">per person</p>
-            <ul className="mt-6 space-y-3 text-sm font-light text-brand-dark/85">
+          <div className="rounded-[22px] border border-brand-dark/10 bg-white p-6 shadow-[0_18px_40px_-28px_rgba(13,27,42,0.5)]">
+            <p className="text-xs font-normal uppercase tracking-wider text-brand-dark/55">From</p>
+            <p className="text-3xl font-semibold tracking-tight text-primary">{formatKes(trip.price)}</p>
+            <p className="text-sm font-normal text-brand-dark/60">per person</p>
+            <ul className="mt-6 space-y-3 text-sm font-normal text-brand-dark/85">
               <li className="flex items-start gap-2">
                 <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
                 <span>
@@ -209,7 +210,7 @@ export default function TripDetail() {
               </li>
             </ul>
             <div className="mt-6">
-              <div className="flex justify-between text-xs font-extralight text-brand-dark/60">
+              <div className="flex justify-between text-xs font-normal text-brand-dark/60">
                 <span>Spots left</span>
                 <span>
                   {trip.spotsLeft} / {trip.spotsTotal}
@@ -228,7 +229,7 @@ export default function TripDetail() {
               className={`mt-6 w-full rounded-xl py-3.5 text-sm font-bold shadow-md transition ${
                 expired
                   ? 'cursor-not-allowed bg-emerald-100 text-emerald-700'
-                  : 'bg-primary text-accent hover:bg-primary/90'
+                  : 'bg-brand-orange text-brand-dark hover:bg-[#f4a53f]'
               }`}
             >
               {expired ? 'Adventure accomplished' : 'Reserve your spot'}
@@ -251,6 +252,8 @@ export default function TripDetail() {
           </div>
         </aside>
       </div>
+
+      <NextStep title="Not quite the right dates?" text="We can run this trip privately, on your dates, for your group." primary={{ to: '/custom-tours', label: 'Plan it privately' }} />
 
       <ReserveModal open={reserveOpen} onClose={() => setReserveOpen(false)} tripTitle={trip.title} />
     </div>

@@ -1,145 +1,131 @@
 import { Link, useParams, Navigate } from 'react-router-dom';
-import { ChevronRight, BookOpen, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Clock, Luggage } from 'lucide-react';
 import BlogShareBar from '../components/BlogShareBar.jsx';
 import { useBlogPost, useBlogPosts } from '../hooks/useApi.js';
+import { typeFor } from '../components/home/TripsShowcase.jsx';
+import NextStep from '../components/site/NextStep.jsx';
+import { formatPostDate } from './Blog.jsx';
 
+const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
+
+/** A guide as a calm reading page that ends by turning the reading into a trip. */
 export default function BlogPost() {
   const { slug } = useParams();
   const { data: post, loading, error } = useBlogPost(slug);
   const { data: allPosts } = useBlogPosts();
-  const popular = (allPosts || []).filter((p) => p.featured).slice(0, 3);
-  const full = post && post.sections?.length > 0 ? { sections: post.sections, closing: post.closing } : null;
+  const more = (allPosts || []).filter((p) => p.slug && p.slug !== slug).slice(0, 3);
+  const sections = post?.sections?.length ? post.sections : null;
 
-  if (!loading && (error || !post)) {
-    return <Navigate to="/404" replace />;
-  }
-  if (loading) return null;
+  if (!loading && (error || !post)) return <Navigate to="/404" replace />;
+  if (loading) return <div className="mx-auto h-[60vh] max-w-3xl animate-pulse px-4 py-10" aria-hidden />;
+
+  const type = typeFor({ category: post.category || '' });
+  const planHref = type ? `/?plan=1&type=${type}` : '/?plan=1';
 
   return (
-    <div className="relative">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(27,67,50,0.05),transparent_45%)]" />
-      <div className="relative mx-auto max-w-7xl px-4 py-12 md:px-6">
-        <nav className="flex flex-wrap items-center gap-1 text-sm font-light text-brand-dark/60">
-          <Link to="/" className="hover:text-primary">
-            Home
+    <div>
+      <article>
+        <header className="mx-auto max-w-3xl px-4 pt-8 md:pt-12">
+          <Link to="/blog" className={`inline-flex items-center gap-1.5 text-sm font-medium text-brand-dark/60 hover:text-primary ${ring}`}>
+            <ArrowLeft className="h-4 w-4" aria-hidden />
+            All guides
           </Link>
-          <ChevronRight className="h-4 w-4 opacity-50" aria-hidden />
-          <Link to="/blog" className="hover:text-primary">
-            Blog
-          </Link>
-          <ChevronRight className="h-4 w-4 opacity-50" aria-hidden />
-          <span className="font-medium text-brand-dark">{post.title}</span>
-        </nav>
+          <p className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-brand-dark/55">
+            {post.category && <span className="font-semibold uppercase tracking-[0.16em] text-[#b5650d]">{post.category}</span>}
+            {post.date && <span>{formatPostDate(post.date)}</span>}
+            {post.readTime && (
+              <span className="inline-flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5" aria-hidden />
+                {post.readTime}
+              </span>
+            )}
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-brand-dark md:text-5xl">{post.title}</h1>
+          {post.excerpt && <p className="mt-4 text-lg italic leading-relaxed text-brand-dark/70">{post.excerpt}</p>}
+          <div className="mt-6">
+            <BlogShareBar title={post.title} slug={post.slug} />
+          </div>
+        </header>
 
-        <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_300px]">
-          <article className="glass-surface-strong overflow-hidden rounded-3xl">
-            <img src={post.image} alt={post.title} className="aspect-[21/9] w-full object-cover" />
-            <div className="p-6 md:p-10">
-              <p className="flex items-center gap-2 text-sm font-semibold text-primary">
-                <BookOpen className="h-4 w-4" aria-hidden />
-                {post.category}
-              </p>
-              <h1 className="mt-3 font-display text-3xl font-bold text-brand-dark md:text-4xl">{post.title}</h1>
-              <p className="mt-2 text-sm font-extralight text-brand-dark/50">
-                {post.date} · {post.readTime}
-              </p>
+        {post.image && (
+          <div className="mx-auto mt-8 max-w-5xl px-4">
+            <img src={post.image} alt="" className="aspect-[16/9] w-full rounded-[22px] object-cover" />
+          </div>
+        )}
 
-              <div className="mt-6">
-                <BlogShareBar title={post.title} slug={post.slug} />
-              </div>
+        <div className="mx-auto max-w-[68ch] px-4 py-10 text-[17px] leading-[1.8] text-brand-dark/85">
+          {sections ? (
+            sections.map((s, si) => (
+              <section key={`${s.heading}-${si}`} className="mt-10 first:mt-0">
+                {s.heading && <h2 className="text-2xl font-semibold leading-snug tracking-tight text-brand-dark">{s.heading}</h2>}
+                {s.body.map((block, i) =>
+                  typeof block === 'string' ? (
+                    <p key={i} className="mt-4 whitespace-pre-line">
+                      {block}
+                    </p>
+                  ) : block?.type === 'image' && block.url ? (
+                    <figure key={i} className="my-8 -mx-4 sm:mx-0">
+                      <img src={block.url} alt={block.alt || ''} className="w-full rounded-[18px] object-cover" loading="lazy" />
+                      {block.caption && <figcaption className="mt-2 text-center text-sm italic text-brand-dark/55">{block.caption}</figcaption>}
+                    </figure>
+                  ) : null
+                )}
+              </section>
+            ))
+          ) : (
+            <p className="whitespace-pre-line">{post.excerpt}</p>
+          )}
 
-              {post.gallery?.length > 0 && (
-                <div className="mt-8">
-                  <h2 className="font-semibold text-brand-dark">Gallery</h2>
-                  <div className="mt-3 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3">
-                    {post.gallery.map((url, index) => (
-                      <img
-                        key={`${url}-${index}`}
-                        src={url}
-                        alt={`${post.title} — gallery ${index + 1}`}
-                        className="aspect-square w-full rounded-lg object-cover sm:rounded-xl"
-                        loading="lazy"
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+          {post.closing && <p className="mt-10 border-l-2 border-brand-orange pl-5 italic text-brand-dark/75">{post.closing}</p>}
 
-              {full ? (
-                <div className="prose prose-neutral mt-10 max-w-none">
-                  {full.sections.map((s, si) => (
-                    <section key={`${s.heading}-${si}`} className="mb-8">
-                      <h2 className="font-display text-2xl font-bold text-brand-dark">{s.heading}</h2>
-                      {s.body.map((block, i) =>
-                        typeof block === 'string' ? (
-                          <p key={i} className="mt-4 font-light leading-relaxed text-brand-dark/85">
-                            {block}
-                          </p>
-                        ) : block?.type === 'image' && block.url ? (
-                          <figure key={i} className="my-6">
-                            <img
-                              src={block.url}
-                              alt={block.alt || ''}
-                              className="w-full rounded-2xl object-cover"
-                              loading="lazy"
-                            />
-                            {block.caption ? (
-                              <figcaption className="mt-2 text-center text-sm font-light text-brand-dark/60">
-                                {block.caption}
-                              </figcaption>
-                            ) : null}
-                          </figure>
-                        ) : null
-                      )}
-                    </section>
-                  ))}
-                  {full.closing ? (
-                    <p className="mt-8 border-l-4 border-accent pl-4 font-light italic text-brand-dark/80">{full.closing}</p>
-                  ) : null}
-                </div>
-              ) : (
-                <div className="mt-10 space-y-4 font-light leading-relaxed text-brand-dark/85">
-                  <p>{post.excerpt}</p>
-                  <p>
-                    Full article coming soon — for now, browse our trips or message us on WhatsApp for personalised tips on this
-                    destination.
-                  </p>
-                </div>
-              )}
-
-              <Link
-                to="/blog"
-                className="mt-10 inline-flex items-center gap-2 font-semibold text-primary transition hover:gap-3 hover:underline"
-              >
-                <ArrowLeft className="h-4 w-4" aria-hidden />
-                Back to blog
-              </Link>
+          {post.gallery?.length > 0 && (
+            <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {post.gallery.map((url, index) => (
+                <img key={`${url}-${index}`} src={url} alt="" className="aspect-square w-full rounded-[14px] object-cover" loading="lazy" />
+              ))}
             </div>
-          </article>
+          )}
 
-          <aside className="space-y-6 lg:sticky lg:top-28">
-            <div className="glass-surface rounded-3xl p-6">
-              <h3 className="font-display font-bold text-brand-dark">Popular</h3>
-              <ul className="mt-3 space-y-2 text-sm font-light">
-                {popular.map((p) => (
-                  <li key={p.slug}>
-                    <Link to={`/blog/${p.slug}`} className="text-primary hover:underline">
-                      {p.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+          {/* Turn reading into planning. */}
+          <div className="mt-12 flex flex-col items-start gap-4 rounded-[22px] border border-brand-dark/10 bg-brand-bg p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-lg font-semibold text-brand-dark">Want to do this yourself?</p>
+              <p className="text-[15px] text-brand-dark/65">We’ll plan it around your dates and your group.</p>
             </div>
             <Link
-              to="/trips"
-              className="flex items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-center text-sm font-bold text-accent shadow-md transition hover:bg-primary/90"
+              to={planHref}
+              className={`inline-flex min-h-[48px] shrink-0 items-center gap-2 rounded-full bg-brand-orange px-6 text-[15px] font-semibold text-brand-dark transition-colors hover:bg-[#f4a53f] ${ring}`}
             >
-              Browse trips
-              <ChevronRight className="h-4 w-4" aria-hidden />
+              <Luggage className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+              Plan a trip like this
             </Link>
-          </aside>
+          </div>
         </div>
-      </div>
+      </article>
+
+      {more.length > 0 && (
+        <section aria-labelledby="more-guides" className="border-t border-brand-dark/10 bg-brand-bg py-12">
+          <div className="mx-auto max-w-6xl px-4 md:px-6">
+            <h2 id="more-guides" className="text-2xl font-semibold tracking-tight text-brand-dark">
+              More <span className="font-light italic">guides</span>
+            </h2>
+            <ul className="mt-6 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {more.map((p) => (
+                <li key={p.slug}>
+                  <Link to={`/blog/${p.slug}`} className={`group block ${ring}`}>
+                    <div className="aspect-[16/10] overflow-hidden rounded-[18px] bg-brand-dark/10">
+                      <img src={p.image} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
+                    </div>
+                    <p className="mt-3 font-semibold leading-snug text-brand-dark group-hover:text-primary">{p.title}</p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      <NextStep />
     </div>
   );
 }
