@@ -1,156 +1,201 @@
-import { useMemo, useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { SlidersHorizontal, Compass } from 'lucide-react';
-import TripCard from '../components/TripCard.jsx';
-import PageHero from '../components/PageHero.jsx';
+import { useMemo } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Compass, Luggage, RotateCcw } from 'lucide-react';
 import { useTrips } from '../hooks/useApi.js';
-import { pageHeroImages } from '../data/pageHeroImages.js';
-import { parseDurationDays, durationBucket, matchesBudget } from '../utils/formatters.js';
+import { tripTypes } from '../data/tripTypes.js';
+import { TripCard, typeFor } from '../components/home/TripsShowcase.jsx';
+import PageHeader from '../components/site/PageHeader.jsx';
+import NextStep from '../components/site/NextStep.jsx';
 
-const categories = ['Hiking', 'Camping', 'Safari', 'International', 'Women-Only', 'Beach', 'Group Experiences'];
+const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
+const selectClass =
+  'min-h-[44px] rounded-full border border-brand-dark/15 bg-white px-4 pr-9 text-sm font-medium text-brand-dark focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25';
 
-const budgetOptions = [
-  { value: '', label: 'Any budget' },
-  { value: 'under10k', label: 'Under 10k' },
-  { value: '10k-30k', label: '10k – 30k' },
-  { value: '30k+', label: '30k+' },
-];
+function nextMonths() {
+  const now = new Date();
+  return Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    return { value: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, label: d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) };
+  });
+}
 
-const difficultyOptions = ['', 'Easy', 'Moderate', 'Hard'];
-
-const inputClass = 'glass-input mt-1.5 w-full min-w-[140px]';
-const labelClass = 'text-xs font-bold uppercase tracking-wider text-brand-dark/70';
-
+/**
+ * All trips, filtered the same way the home finder asks: what kind of trip, which month, how many people.
+ * Reads the finder's parameters (?type=safari&month=2026-10&group=4, and older ?category=Hiking links),
+ * splits upcoming departures from past trips, and never dead-ends: with no match it offers to plan the trip.
+ */
 export default function Trips() {
-  const [searchParams] = useSearchParams();
-  const categoryFromUrl = searchParams.get('category') || '';
+  const [params, setParams] = useSearchParams();
+  const { data, loading } = useTrips();
+  const months = useMemo(nextMonths, []);
 
-  const [category, setCategory] = useState(categoryFromUrl);
-  const [duration, setDuration] = useState('');
-  const [budget, setBudget] = useState('');
-  const [difficulty, setDifficulty] = useState('');
+  const type = params.get('type') || typeFor({ category: params.get('category') || '' }) || '';
+  const month = params.get('month') || '';
+  const group = Number.parseInt(params.get('group') || '', 10) || 0;
+  const view = params.get('view') === 'past' ? 'past' : 'upcoming';
 
-  const { data: tripsData, loading } = useTrips();
-  const allTrips = tripsData || [];
+  function set(key, value) {
+    const next = new URLSearchParams(params);
+    next.delete('category');
+    if (value) next.set(key, value);
+    else next.delete(key);
+    setParams(next, { replace: true });
+  }
 
-  useEffect(() => {
-    setCategory(categoryFromUrl);
-  }, [categoryFromUrl]);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const trips = data || [];
+  const isPast = (t) => t.nextDeparture && new Date(t.nextDeparture) < today;
+  const inView = trips.filter((t) => (view === 'past' ? isPast(t) : !isPast(t)));
+  const shown = inView
+    .filter((t) => !type || typeFor(t) === type)
+    .filter((t) => !month || (t.nextDeparture && t.nextDeparture.slice(0, 7) === month))
+    .filter((t) => !group || view === 'past' || !t.spotsLeft || t.spotsLeft >= group)
+    .sort((a, b) =>
+      view === 'past'
+        ? new Date(b.nextDeparture) - new Date(a.nextDeparture)
+        : new Date(a.nextDeparture || '2999-01-01') - new Date(b.nextDeparture || '2999-01-01')
+    );
 
-  const filtered = useMemo(() => {
-    return allTrips.filter((t) => {
-      if (category && t.category !== category) return false;
-      const days = parseDurationDays(t.duration);
-      if (duration) {
-        const b = durationBucket(days);
-        if (duration === '1-2' && b !== '1-2') return false;
-        if (duration === '3-5' && b !== '3-5') return false;
-        if (duration === '6+' && b !== '6+') return false;
-      }
-      if (!matchesBudget(t.price, budget)) return false;
-      if (difficulty && t.difficulty !== difficulty) return false;
-      return true;
-    });
-  }, [allTrips, category, duration, budget, difficulty]);
+  const filtersOn = Boolean(type || month || group);
+  const planParams = new URLSearchParams({ plan: '1', ...(type ? { type } : {}) });
+  const planHref = `/?${planParams}`;
 
   return (
-    <div className="relative">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_0%,rgba(27,67,50,0.06),transparent_50%)]" />
-      <PageHero
-        imageUrl={pageHeroImages.trips}
-        imageAlt="Kenya savanna at sunrise — wide open plains and acacia trees"
-        title="All adventures"
-        subtitle="Filter by what matters — all pricing in KES per person."
-      />
-      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-8 md:px-6">
-        <div className="glass-surface-strong rounded-3xl p-4 md:p-6">
-          <div className="mb-4 flex items-center gap-2 text-primary">
-            <SlidersHorizontal className="h-5 w-5 shrink-0" aria-hidden />
-            <span className="font-display text-sm font-bold uppercase tracking-wide text-brand-dark">Filters</span>
+    <div>
+      <PageHeader
+        eyebrow="Trips"
+        title="Find your"
+        accent="next trip"
+        description="Filter the way the trip finder asks: what kind of trip, when, and how many of you."
+      >
+        <div className="mx-auto max-w-6xl space-y-4 px-4 pb-5 md:px-6">
+          <div className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Trip type">
+            {[{ value: '', label: 'All trips' }, ...tripTypes].map((t) => {
+              const selected = type === t.value;
+              return (
+                <button
+                  key={t.value || 'all'}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => set('type', t.value)}
+                  className={`inline-flex min-h-[40px] shrink-0 items-center rounded-full border px-4 text-sm font-medium transition-colors duration-150 ${ring} ${
+                    selected ? 'border-brand-orange bg-brand-orange text-brand-dark' : 'border-brand-dark/15 bg-white text-brand-dark/80 hover:border-brand-dark/40'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
           </div>
-          
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
-            <label className="flex flex-col text-sm">
-              <span className={labelClass}>Category</span>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className={inputClass}
-              >
-                <option value="">All</option>
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+          <div className="flex flex-wrap items-center gap-3">
+            <label>
+              <span className="sr-only">Month</span>
+              <select value={month} onChange={(e) => set('month', e.target.value)} className={selectClass}>
+                <option value="">Any month</option>
+                {months.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
                   </option>
                 ))}
               </select>
             </label>
-            <label className="flex flex-col text-sm">
-              <span className={labelClass}>Duration</span>
-              <select value={duration} onChange={(e) => setDuration(e.target.value)} className={inputClass}>
-                <option value="">Any</option>
-                <option value="1-2">1–2 days</option>
-                <option value="3-5">3–5 days</option>
-                <option value="6+">6+ days</option>
-              </select>
-            </label>
-            <label className="flex flex-col text-sm">
-              <span className={labelClass}>Budget</span>
-              <select value={budget} onChange={(e) => setBudget(e.target.value)} className={inputClass}>
-                {budgetOptions.map((o) => (
-                  <option key={o.value || 'any'} value={o.value}>
-                    {o.label}
+            <label>
+              <span className="sr-only">Group size</span>
+              <select value={group || ''} onChange={(e) => set('group', e.target.value)} className={selectClass}>
+                <option value="">Any group size</option>
+                {[1, 2, 3, 4, 5, 6, 8, 10, 15, 20].map((n) => (
+                  <option key={n} value={n}>
+                    {n === 1 ? '1 person' : `${n} people`}
                   </option>
                 ))}
               </select>
             </label>
-            <label className="flex flex-col text-sm">
-              <span className={labelClass}>Difficulty</span>
-              <select value={difficulty} onChange={(e) => setDifficulty(e.target.value)} className={inputClass}>
-                <option value="">Any</option>
-                {difficultyOptions.filter(Boolean).map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="ml-auto inline-flex rounded-full bg-brand-dark/[0.06] p-1" role="tablist" aria-label="Upcoming or past trips">
+              {[
+                ['upcoming', 'Upcoming'],
+                ['past', 'Past trips'],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="tab"
+                  aria-selected={view === value}
+                  onClick={() => set('view', value === 'past' ? 'past' : '')}
+                  className={`min-h-[36px] rounded-full px-4 text-sm font-medium transition-colors ${ring} ${
+                    view === value ? 'bg-white text-brand-dark shadow-sm' : 'text-brand-dark/60 hover:text-brand-dark'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
+      </PageHeader>
 
-        <p className="mt-8 text-sm font-light text-brand-dark/80">
-          <Compass className="mr-1.5 inline-block h-4 w-4 align-text-bottom text-primary" aria-hidden />
-          {loading ? (
-            <span className="text-brand-dark/50">Loading trips…</span>
-          ) : (
-            <><span className="font-semibold text-brand-dark">{filtered.length}</span> trip{filtered.length === 1 ? '' : 's'} found</>
-          )}
-        </p>
-
-        {filtered.length === 0 ? (
-          <div className="glass-surface mt-10 px-6 py-16 text-center">
-            <p className="text-lg font-light text-brand-dark/85">No trips match those filters.</p>
-            <button
-              type="button"
-              onClick={() => {
-                setCategory('');
-                setDuration('');
-                setBudget('');
-                setDifficulty('');
-              }}
-              className="mt-4 text-sm font-semibold text-primary underline underline-offset-4 hover:text-primary/80"
-            >
-              Clear filters
-            </button>
-          </div>
-        ) : (
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-            {filtered.map((trip) => (
-              <TripCard key={trip.id} trip={trip} />
+      <section className="mx-auto max-w-6xl px-4 py-10 md:px-6" aria-live="polite">
+        {loading && !trips.length ? (
+          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" aria-hidden>
+            {[0, 1, 2].map((i) => (
+              <li key={i} className="h-80 animate-pulse rounded-[22px] bg-brand-dark/[0.06]" />
             ))}
+          </ul>
+        ) : shown.length ? (
+          <>
+            <p className="mb-5 text-sm text-brand-dark/60">
+              {shown.length} {view === 'past' ? 'past' : 'upcoming'} {shown.length === 1 ? 'trip' : 'trips'}
+            </p>
+            <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {shown.map((trip) => (
+                <li key={trip.id}>
+                  <TripCard trip={trip} past={view === 'past'} />
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          // Never a dead end: nothing published (or nothing matching) becomes an invitation to plan it.
+          <div className="mx-auto max-w-xl rounded-[22px] border border-brand-dark/10 bg-white px-6 py-10 text-center shadow-[0_18px_40px_-28px_rgba(13,27,42,0.5)]">
+            <Compass className="mx-auto h-10 w-10 text-brand-orange" strokeWidth={1.5} aria-hidden />
+            <p className="mt-4 text-xl font-semibold text-brand-dark">
+              {trips.length
+                ? 'Nothing matches that just yet.'
+                : view === 'past'
+                  ? 'Past trips will show here.'
+                  : 'New departures are on the way.'}
+            </p>
+            <p className="mt-2 text-[15px] text-brand-dark/65">
+              Tell us what you have in mind and we’ll plan it around your dates, whether or not it’s on the calendar.
+            </p>
+            <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <Link
+                to={planHref}
+                className={`inline-flex min-h-[48px] items-center gap-2 rounded-full bg-brand-orange px-6 text-[15px] font-semibold text-brand-dark transition-colors hover:bg-[#f4a53f] ${ring}`}
+              >
+                <Luggage className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+                Plan my trip
+              </Link>
+              {filtersOn && (
+                <button
+                  type="button"
+                  onClick={() => setParams(view === 'past' ? { view: 'past' } : {}, { replace: true })}
+                  className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-4 text-sm font-medium text-brand-dark/70 hover:text-brand-dark ${ring}`}
+                >
+                  <RotateCcw className="h-4 w-4" aria-hidden />
+                  Clear filters
+                </button>
+              )}
+            </div>
           </div>
         )}
-      </div>
+      </section>
+
+      <NextStep
+        title="Don’t see the one?"
+        text="Private and custom trips are planned around your dates, budget and group."
+        secondary={{ to: '/custom-tours', label: 'Private & custom tours' }}
+      />
     </div>
   );
 }

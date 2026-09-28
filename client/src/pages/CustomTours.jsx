@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Building2, Users, UserRound, Heart, CarFront, MessageCircle } from 'lucide-react';
 import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
 import { tripTypes } from '../data/tripTypes.js';
+import PageHeader from '../components/site/PageHeader.jsx';
 
 const services = [
   {
@@ -32,8 +33,9 @@ const services = [
   },
 ];
 
-const inputClass = 'glass-input mt-1.5 w-full';
-const labelClass = 'text-xs font-bold uppercase tracking-wider text-brand-dark/70';
+const inputClass =
+  'mt-1.5 w-full rounded-xl border border-brand-dark/15 bg-white px-3.5 py-3 text-[15px] text-brand-dark transition placeholder:text-brand-dark/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25';
+const labelClass = 'text-sm font-semibold text-brand-dark';
 
 /** Open-ended choices from the home trip finder (?when=next3). */
 const WHEN_TEXT = { next3: 'Within the next 3 months', next6: 'Within the next 6 months', flexible: 'Flexible dates' };
@@ -85,31 +87,46 @@ export default function CustomTours() {
   }
 
   return (
-    <div className="relative">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_30%_0%,rgba(27,67,50,0.06),transparent_50%)]" />
-      <div className="relative mx-auto max-w-5xl px-4 py-12 md:px-6">
-        <h1 className="font-display text-4xl font-bold text-brand-dark md:text-5xl">Private &amp; custom tours</h1>
-        <p className="mt-4 max-w-3xl font-light leading-relaxed text-brand-dark/80">
-          Tell us your dates, budget, and dream destinations — we design itineraries for families, teams, and celebrations
-          across Kenya, East Africa, and select international hubs.
-        </p>
+    <div>
+      <PageHeader
+        eyebrow="Private & custom"
+        title="Your trip,"
+        accent="planned around you"
+        description="Dates, budget, group and where you dream of going. We design it across Kenya, East Africa and selected international hubs."
+      />
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 md:px-6 lg:grid-cols-[20rem_1fr]">
+        <aside className="lg:sticky lg:top-28 lg:self-start">
+          <p className="text-sm font-semibold text-brand-dark">We plan trips for</p>
+          <ul className="mt-3 space-y-3">
+            {services.map(({ title, text, Icon }) => (
+              <li key={title} className="flex gap-3">
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-orange/15 text-[#b5650d]">
+                  <Icon className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+                </span>
+                <span>
+                  <span className="block text-[15px] font-medium text-brand-dark">{title}</span>
+                  <span className="block text-sm text-brand-dark/60">{text}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-full border border-brand-dark/15 px-5 text-sm font-semibold text-brand-dark transition-colors hover:border-brand-dark/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            <MessageCircle className="h-4 w-4" aria-hidden />
+            Rather chat? WhatsApp us
+          </a>
+        </aside>
 
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {services.map(({ title, text, Icon }) => (
-            <div key={title} className="glass-surface rounded-3xl p-6 transition hover:border-accent/25">
-              <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/40 bg-primary/10 text-primary">
-                <Icon className="h-6 w-6" strokeWidth={1.75} aria-hidden />
-              </span>
-              <h2 className="mt-4 font-display text-lg font-bold text-brand-dark">{title}</h2>
-              <p className="mt-2 text-sm font-light text-brand-dark/75">{text}</p>
-            </div>
-          ))}
-        </div>
-
-        <div id="inquiry" ref={formRef} className="glass-surface-strong mt-16 scroll-mt-24 rounded-3xl p-6 md:p-10">
-          <h2 className="font-display text-2xl font-bold text-brand-dark">Inquiry form</h2>
+        <div id="inquiry" ref={formRef} className="scroll-mt-24 rounded-[22px] border border-brand-dark/10 bg-white p-6 shadow-[0_18px_40px_-28px_rgba(13,27,42,0.5)] md:p-8">
+          <h2 className="text-2xl font-semibold tracking-tight text-brand-dark">
+            Tell us <span className="font-light italic">about your trip</span>
+          </h2>
           {sent ? (
-            <p className="mt-6 rounded-2xl border border-primary/20 bg-primary/10 px-4 py-4 font-light text-brand-dark">
+            <p className="mt-6 rounded-2xl border border-primary/20 bg-primary/10 px-4 py-4 text-brand-dark" role="status">
               We&apos;ll reach out within 24 hours via WhatsApp!
             </p>
           ) : (
@@ -119,6 +136,7 @@ export default function CustomTours() {
                 <input
                   required
                   name="name"
+                  autoComplete="name"
                   value={form.name}
                   onChange={handleChange}
                   className={inputClass}
@@ -140,6 +158,8 @@ export default function CustomTours() {
                 <input
                   required
                   name="phone"
+                  type="tel"
+                  autoComplete="tel"
                   value={form.phone}
                   onChange={handleChange}
                   className={inputClass}
@@ -158,15 +178,15 @@ export default function CustomTours() {
               </label>
               <label className="flex flex-col text-sm">
                 <span className={labelClass}>Destination</span>
-                <input name="destination" value={form.destination} onChange={handleChange} className={inputClass} />
+                <input name="destination" value={form.destination} onChange={handleChange} placeholder="e.g. Maasai Mara and Diani" className={inputClass} />
               </label>
               <label className="flex flex-col text-sm">
                 <span className={labelClass}>Travel dates</span>
-                <input name="dates" value={form.dates} onChange={handleChange} className={inputClass} />
+                <input name="dates" value={form.dates} onChange={handleChange} placeholder="e.g. October 2026, or 12–19 Oct" className={inputClass} />
               </label>
               <label className="flex flex-col text-sm">
                 <span className={labelClass}>Group size</span>
-                <input name="groupSize" value={form.groupSize} onChange={handleChange} className={inputClass} />
+                <input name="groupSize" value={form.groupSize} onChange={handleChange} placeholder="e.g. 2 adults, 1 child" className={inputClass} />
               </label>
               <label className="flex flex-col text-sm">
                 <span className={labelClass}>Budget range (KES)</span>
@@ -185,7 +205,7 @@ export default function CustomTours() {
               <div className="sm:col-span-2">
                 <button
                   type="submit"
-                  className="rounded-xl bg-primary px-8 py-3 font-bold text-accent shadow-md transition hover:bg-primary/90"
+                  className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-brand-orange px-7 text-[15px] font-semibold text-brand-dark transition-colors hover:bg-[#f4a53f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   Send inquiry
                 </button>
@@ -194,18 +214,6 @@ export default function CustomTours() {
           )}
         </div>
 
-        <div className="mt-10 text-center">
-          <p className="font-light text-brand-dark/80">Prefer to chat?</p>
-          <a
-            href={whatsappHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-8 py-3 font-bold text-white shadow-md transition hover:opacity-95"
-          >
-            <MessageCircle className="h-5 w-5" aria-hidden />
-            Message us directly
-          </a>
-        </div>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import { MessageCircle, ChevronRight, Star } from 'lucide-react';
 import { useAccommodation } from '../hooks/useApi.js';
 import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
+import NextStep from '../components/site/NextStep.jsx';
 
 function formatKes(value) {
   return new Intl.NumberFormat('en-KE', {
@@ -49,7 +50,7 @@ export default function AccommodationDetail() {
         <aside className="order-1 lg:sticky lg:order-2 lg:top-24">
           <div className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
             <p className="text-xs uppercase tracking-wider text-brand-dark/60">From</p>
-            <p className="mt-1 font-display text-2xl font-bold text-primary sm:text-3xl">{formatKes(item.priceFrom)}</p>
+            <p className="mt-1 text-2xl font-semibold tracking-tight text-primary sm:text-3xl">{formatKes(item.priceFrom)}</p>
             <p className="text-sm text-brand-dark/60">per night / package</p>
             <a
               href={bookStayHref}
@@ -69,7 +70,7 @@ export default function AccommodationDetail() {
               <img src={item.image} alt={item.title} className="aspect-[4/3] w-full object-cover sm:aspect-[16/9] sm:max-h-[min(56vh,480px)] md:max-h-[420px]" />
             </div>
           )}
-          <h1 className="mt-5 font-display text-2xl font-bold leading-tight text-brand-dark sm:mt-6 sm:text-3xl md:text-4xl">{item.title}</h1>
+          <h1 className="mt-5 text-2xl font-semibold tracking-tight leading-tight text-brand-dark sm:mt-6 sm:text-3xl md:text-4xl">{item.title}</h1>
           <p className="mt-2 text-sm text-brand-dark/75 sm:text-base">{item.location}</p>
           {item.rating ? (
             <p className="mt-2 inline-flex items-center gap-1 text-sm text-amber-600">
@@ -111,6 +112,7 @@ export default function AccommodationDetail() {
           ) : null}
         </section>
       </div>
+      <NextStep title="Make it part of a trip." text="We plan the route, transfers and activities around your stay." />
     </div>
   );
 }

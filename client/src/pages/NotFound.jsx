@@ -1,24 +1,33 @@
 import { Link } from 'react-router-dom';
-import { Home, Compass } from 'lucide-react';
+import { Compass, Luggage } from 'lucide-react';
 
+const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
+
+/** A wrong turn still gets a way forward: plan a trip, browse trips, or go home. */
 export default function NotFound() {
   return (
-    <div className="relative flex min-h-[60vh] flex-col items-center justify-center px-4 py-20 text-center">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(27,67,50,0.08),transparent_50%)]" />
-      <div className="glass-surface-strong relative max-w-md rounded-3xl px-10 py-12">
-        <p className="flex justify-center text-primary">
-          <Compass className="h-10 w-10" strokeWidth={1.25} aria-hidden />
-        </p>
-        <h1 className="mt-4 font-display text-6xl font-bold text-primary">404</h1>
-        <p className="mt-4 font-light text-brand-dark/80">This page doesn&apos;t exist or has moved.</p>
+    <section className="flex min-h-[60vh] flex-col items-center justify-center bg-brand-bg px-4 py-20 text-center">
+      <Compass className="h-12 w-12 text-brand-orange" strokeWidth={1.25} aria-hidden />
+      <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-brand-dark/45">Error 404</p>
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-brand-dark md:text-4xl">
+        This trail <span className="font-light italic">doesn’t exist</span>
+      </h1>
+      <p className="mt-3 max-w-md text-[15px] text-brand-dark/65">The page may have moved. Here are the best ways back on track.</p>
+      <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
         <Link
-          to="/"
-          className="mt-8 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-3.5 font-bold text-accent shadow-md transition hover:bg-primary/90"
+          to="/?plan=1"
+          className={`inline-flex min-h-[48px] items-center gap-2 rounded-full bg-brand-orange px-6 text-[15px] font-semibold text-brand-dark hover:bg-[#f4a53f] ${ring}`}
         >
-          <Home className="h-4 w-4" aria-hidden />
+          <Luggage className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+          Plan my trip
+        </Link>
+        <Link to="/trips" className={`inline-flex min-h-[44px] items-center rounded-full border border-brand-dark/15 px-5 text-sm font-semibold text-brand-dark hover:border-brand-dark/40 ${ring}`}>
+          Browse trips
+        </Link>
+        <Link to="/" className={`inline-flex min-h-[44px] items-center px-3 text-sm font-medium text-brand-dark/70 hover:text-brand-dark ${ring}`}>
           Back to home
         </Link>
       </div>
-    </div>
+    </section>
   );
 }

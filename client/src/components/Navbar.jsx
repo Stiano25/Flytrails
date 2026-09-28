@@ -48,6 +48,7 @@ function Dropdown({ label, items, openMenu, setOpenMenu, overlay }) {
   const wrapRef = useRef(null);
   const buttonRef = useRef(null);
   const closeTimer = useRef(0);
+  const openedByHover = useRef(false);
   const menuId = `menu-${label.toLowerCase()}`;
 
   useEffect(() => {
@@ -79,9 +80,11 @@ function Dropdown({ label, items, openMenu, setOpenMenu, overlay }) {
       className="relative"
       onMouseEnter={() => {
         clearTimeout(closeTimer.current);
+        if (!isOpen) openedByHover.current = true;
         setOpenMenu(label);
       }}
       onMouseLeave={() => {
+        openedByHover.current = false;
         closeTimer.current = setTimeout(() => setOpenMenu(''), 160);
       }}
       onBlur={(e) => {
@@ -94,7 +97,15 @@ function Dropdown({ label, items, openMenu, setOpenMenu, overlay }) {
         aria-haspopup="true"
         aria-expanded={isOpen}
         aria-controls={menuId}
-        onClick={() => setOpenMenu(isOpen ? '' : label)}
+        // Hover (or a tablet tap, which fires a synthetic hover first) has already opened it: keep it open.
+        onClick={() => {
+          if (openedByHover.current) {
+            openedByHover.current = false;
+            setOpenMenu(label);
+            return;
+          }
+          setOpenMenu(isOpen ? '' : label);
+        }}
         onKeyDown={(e) => {
           if (e.key === 'ArrowDown') {
             e.preventDefault();
