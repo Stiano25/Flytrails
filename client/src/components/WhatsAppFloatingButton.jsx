@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
 
 /** Official WhatsApp logo mark (white on brand green background). */
@@ -17,13 +19,29 @@ function WhatsappIcon({ className }) {
 
 export default function WhatsAppFloatingButton() {
   const whatsappHref = useWhatsappLink();
+  const isHome = useLocation().pathname === '/';
+  const [pastHero, setPastHero] = useState(false);
+
+  // On the home page, stay out of the way of the hero trip finder until the visitor scrolls on.
+  useEffect(() => {
+    if (!isHome) return undefined;
+    const onScroll = () => setPastHero(window.scrollY > window.innerHeight * 0.5);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [isHome]);
+
+  const hidden = isHome && !pastHero;
+
   return (
     <a
       href={whatsappHref}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Open WhatsApp help chat"
-      className="fixed bottom-[max(1rem,env(safe-area-inset-bottom,0px))] right-4 z-40 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl transition hover:scale-105 hover:bg-[#20ba58] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 sm:bottom-5 sm:right-5 sm:h-14 sm:w-14"
+      aria-hidden={hidden || undefined}
+      tabIndex={hidden ? -1 : undefined}
+      className={`${hidden ? 'pointer-events-none translate-y-3 opacity-0' : 'opacity-100'} fixed bottom-[max(1rem,env(safe-area-inset-bottom,0px))] right-4 z-40 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl transition hover:scale-105 hover:bg-[#20ba58] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 sm:bottom-5 sm:right-5 sm:h-14 sm:w-14`}
     >
       <WhatsappIcon className="h-7 w-7 sm:h-8 sm:w-8" />
     </a>

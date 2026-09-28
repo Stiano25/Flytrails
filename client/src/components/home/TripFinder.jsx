@@ -24,7 +24,7 @@ function Field({ id, label, value, onChange, children, className = '' }) {
   return (
     <label
       htmlFor={id}
-      className={`group relative flex min-w-0 cursor-pointer flex-col justify-center rounded-2xl px-4 py-2.5 text-left transition-colors duration-150 hover:bg-brand-dark/[0.04] focus-within:bg-brand-dark/[0.04] focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary/70 md:rounded-full md:px-6 ${className}`}
+      className={`group relative flex min-w-0 cursor-pointer flex-col justify-center rounded-2xl px-4 py-2 text-left transition-colors duration-150 hover:bg-brand-dark/[0.04] focus-within:bg-brand-dark/[0.04] focus-within:ring-2 focus-within:ring-inset focus-within:ring-primary/70 sm:rounded-full sm:px-5 sm:py-2.5 lg:px-6 ${className}`}
     >
       <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-dark/60">{label}</span>
       <select
@@ -36,7 +36,7 @@ function Field({ id, label, value, onChange, children, className = '' }) {
         {children}
       </select>
       <ChevronDown
-        className="pointer-events-none absolute right-4 top-1/2 mt-2 h-4 w-4 -translate-y-1/2 text-brand-dark/50 md:right-5"
+        className="pointer-events-none absolute right-4 top-1/2 mt-2 h-4 w-4 -translate-y-1/2 text-brand-dark/50 sm:right-4 lg:right-5"
         aria-hidden
       />
     </label>
@@ -60,13 +60,13 @@ export default function TripFinder() {
   }
 
   return (
-    <div className="mt-9 w-full max-w-3xl [@media(max-height:500px)]:mt-4">
+    <div className="mt-[clamp(0.75rem,3.2svh,2.25rem)] w-full max-w-3xl">
       <form
         onSubmit={handleSubmit}
         aria-label="Plan a trip"
-        className="grid grid-cols-2 gap-1 rounded-3xl bg-white/95 p-2 text-brand-dark shadow-[0_18px_50px_-12px_rgba(13,27,42,0.55)] backdrop-blur md:flex md:items-center md:gap-0 md:rounded-full md:p-2"
+        className="grid grid-cols-2 gap-1 rounded-3xl bg-white/95 p-2 text-brand-dark shadow-[0_18px_50px_-12px_rgba(13,27,42,0.55)] backdrop-blur sm:flex sm:items-center sm:gap-0 sm:rounded-full sm:p-1.5 lg:p-2"
       >
-        <Field id="finder-type" label="Trip type" value={type} onChange={setType} className="col-span-2 md:flex-[1.3]">
+        <Field id="finder-type" label="Trip type" value={type} onChange={setType} className="col-span-2 sm:flex-[1.3]">
           <option value="">Any kind of trip</option>
           {tripTypes.map((t) => (
             <option key={t.value} value={t.value}>
@@ -74,8 +74,8 @@ export default function TripFinder() {
             </option>
           ))}
         </Field>
-        <span className="hidden h-8 w-px shrink-0 bg-brand-dark/10 md:block" aria-hidden />
-        <Field id="finder-month" label="When" value={month} onChange={setMonth} className="md:flex-1">
+        <span className="hidden h-8 w-px shrink-0 bg-brand-dark/10 sm:block" aria-hidden />
+        <Field id="finder-month" label="When" value={month} onChange={setMonth} className="sm:flex-1">
           <option value="">Flexible</option>
           {months.map((m) => (
             <option key={m.value} value={m.value}>
@@ -83,8 +83,8 @@ export default function TripFinder() {
             </option>
           ))}
         </Field>
-        <span className="hidden h-8 w-px shrink-0 bg-brand-dark/10 md:block" aria-hidden />
-        <Field id="finder-group" label="Travellers" value={group} onChange={setGroup} className="md:flex-[0.8]">
+        <span className="hidden h-8 w-px shrink-0 bg-brand-dark/10 sm:block" aria-hidden />
+        <Field id="finder-group" label="Travellers" value={group} onChange={setGroup} className="sm:flex-[0.8]">
           {groupSizes.map((n) => (
             <option key={n} value={n}>
               {n === '1' ? '1 person' : `${n} people`}
@@ -93,14 +93,22 @@ export default function TripFinder() {
         </Field>
         <button
           type="submit"
-          className="group/btn col-span-2 mt-1 inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-accent px-7 text-base font-semibold text-brand-dark transition-colors duration-150 hover:bg-[#e0bb82] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-dark md:ml-1 md:mt-0 md:shrink-0 md:rounded-full"
+          className="group/btn mt-1 inline-flex min-h-[48px] items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-accent px-3 text-[15px] font-semibold text-brand-dark transition-colors duration-150 hover:bg-[#e0bb82] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-dark sm:ml-1 sm:mt-0 sm:min-h-[52px] sm:shrink-0 sm:rounded-full sm:px-6 sm:text-base lg:px-7"
         >
           <Luggage className="h-5 w-5 transition-transform duration-150 group-hover/btn:-rotate-6" strokeWidth={1.75} aria-hidden />
           Plan my trip
         </button>
+        {/* Phones: Explore sits beside Plan my trip inside the card, so nothing falls below the fold. */}
+        <Link
+          to="/trips"
+          className="mt-1 inline-flex min-h-[48px] items-center justify-center gap-2 whitespace-nowrap rounded-2xl border border-brand-dark/20 px-3 text-[15px] font-medium text-brand-dark transition-colors duration-150 hover:border-brand-dark/40 hover:bg-brand-dark/[0.04] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-dark sm:hidden"
+        >
+          <Search className="h-4 w-4" strokeWidth={2} aria-hidden />
+          Explore trips
+        </Link>
       </form>
 
-      <div className="mt-5 flex justify-center [@media(max-height:500px)]:mt-3">
+      <div className="mt-[clamp(0.5rem,2.2svh,1.25rem)] hidden justify-center sm:flex">
         <Link
           to="/trips"
           className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/50 bg-white/5 px-6 text-[15px] font-medium text-white transition-colors duration-150 hover:border-white hover:bg-white/15 ${focusRing}`}
