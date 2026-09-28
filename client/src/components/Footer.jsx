@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
+import { ChevronDown, Facebook, Instagram, Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
 import { SITE_EMAIL, SITE_PHONE_DISPLAY } from '../config.js';
 import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
 import { useSiteContent } from '../hooks/useApi.js';
@@ -62,9 +62,30 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-x-6 gap-y-10 py-10 md:grid-cols-4">
+        <div className="grid gap-x-6 gap-y-8 py-8 md:grid-cols-4 md:py-10">
+          {/* Phones: link groups collapse so the footer stays short. */}
+          <div className="divide-y divide-white/10 border-b border-white/10 md:hidden">
+            {COLUMNS.map((col) => (
+              <details key={col.title} className="group">
+                <summary className={`flex min-h-[52px] cursor-pointer list-none items-center justify-between text-[15px] font-semibold text-white [&::-webkit-details-marker]:hidden ${ring}`}>
+                  {col.title}
+                  <ChevronDown className="h-5 w-5 text-white/50 transition-transform duration-200 group-open:rotate-180" aria-hidden />
+                </summary>
+                <ul className="space-y-1 pb-4">
+                  {col.links.map((l) => (
+                    <li key={`${col.title}-${l.label}`}>
+                      <Link to={l.to} className={`flex min-h-[44px] items-center text-[15px] text-white/70 hover:text-white ${ring}`}>
+                        {l.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            ))}
+          </div>
+
           {COLUMNS.map((col) => (
-            <nav key={col.title} aria-label={col.title}>
+            <nav key={col.title} aria-label={col.title} className="hidden md:block">
               <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-orange">{col.title}</h2>
               <ul className="mt-4 space-y-2.5 text-[15px]">
                 {col.links.map((l) => (
@@ -78,7 +99,7 @@ export default function Footer() {
             </nav>
           ))}
 
-          <div className="col-span-2 md:col-span-1">
+          <div>
             <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-orange">Talk to us</h2>
             <ul className="mt-4 space-y-2.5 text-[15px] text-white/70">
               <li>
