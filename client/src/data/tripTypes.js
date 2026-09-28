@@ -11,6 +11,7 @@ export const tripTypes = [
   { value: 'family', label: 'Family trip', noun: 'family trip', image: '/images/trip-types/family.jpg' },
   { value: 'group', label: 'Group or corporate', noun: 'group trip', image: '/images/trip-types/group.jpg' },
   { value: 'international', label: 'International', noun: 'trip abroad', image: '/images/trip-types/international.jpg' },
+  { value: 'halal', label: 'Halal-friendly', noun: 'halal-friendly trip', image: '/images/trip-types/halal.jpg' },
 ];
 
 export const findTripType = (value) => tripTypes.find((t) => t.value === value);

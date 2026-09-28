@@ -153,10 +153,6 @@ html {
   }
 }
 
-.home-hero[data-compact] .hero-sub {
-  display: none;
-}
-
 .hero-fade {
   animation: heroFade 200ms ease-out both;
 }
@@ -198,4 +194,15 @@ html {
   .picker-fade {
     animation: none;
   }
+}
+
+/* Testimonial postcards: warm paper, and a stamp with perforated edges (holes show the card behind). */
+.postcard-paper {
+  background-color: #fdf9f0;
+  background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.7), rgba(242, 231, 208, 0.35));
+}
+
+.postcard-stamp {
+  padding: 6px;
+  background: radial-gradient(circle at 5px 5px, transparent 2.6px, #ffffff 3px) -5px -5px / 10px 10px;
 }

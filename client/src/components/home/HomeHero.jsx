@@ -4,7 +4,7 @@ import TripFinder from './TripFinder.jsx';
 /**
  * Keep the whole hero inside one screen: if the content is taller than the hero's
  * min-height (100svh, i.e. the screen with browser toolbars showing), shrink the headline
- * step by step and, if needed, drop the sub-line until it fits. Spacing already scales with screen height in CSS.
+ * step by step until it fits. Spacing already scales with screen height in CSS.
  */
 function useFitToScreen(ref) {
   useLayoutEffect(() => {
@@ -13,21 +13,11 @@ function useFitToScreen(ref) {
     let frame = 0;
     const fit = () => {
       const limit = parseFloat(getComputedStyle(section).minHeight) || window.innerHeight;
-      const overflows = () => section.scrollHeight > limit + 1;
-      const shrink = (floor) => {
-        let scale = 1;
-        section.style.setProperty('--headline-scale', '1');
-        while (overflows() && scale > floor) {
-          scale = Math.round((scale - 0.06) * 100) / 100;
-          section.style.setProperty('--headline-scale', String(scale));
-        }
-      };
-      // First keep the sub-line and shrink the headline a little; if that is not enough, drop the sub-line.
-      delete section.dataset.compact;
-      shrink(0.8);
-      if (overflows()) {
-        section.dataset.compact = 'true';
-        shrink(0.62);
+      let scale = 1;
+      section.style.setProperty('--headline-scale', '1');
+      while (section.scrollHeight > limit && scale > 0.62) {
+        scale = Math.round((scale - 0.06) * 100) / 100;
+        section.style.setProperty('--headline-scale', String(scale));
       }
     };
     const schedule = () => {
@@ -79,15 +69,14 @@ export default function HomeHero() {
       />
 
       <div className="hero-fade mx-auto flex w-full max-w-5xl flex-col items-center justify-center px-4 pb-[clamp(0.25rem,3.5svh,2.5rem)] pt-[calc(var(--nav-h)+clamp(0.5rem,2.5svh,1.5rem))] text-center md:px-6">
-        <h1
-          id="home-hero-title"
-          className="font-inter text-[calc(clamp(2.125rem,min(8.4vw,7.2svh),4.75rem)*var(--headline-scale,1))] font-bold leading-[1.04] tracking-[-0.03em] text-white text-balance [text-shadow:0_2px_24px_rgba(13,27,42,0.35)]"
-        >
-          Adventures planned properly, memories guaranteed.
+        <h1 id="home-hero-title" className="font-heading text-white text-balance [text-shadow:0_2px_24px_rgba(13,27,42,0.35)]">
+          <span className="block text-[calc(clamp(2.75rem,min(10.5vw,9svh),6.75rem)*var(--headline-scale,1))] font-semibold leading-[0.98] tracking-[-0.01em]">
+            Adventures planned properly,
+          </span>
+          <span className="mt-[0.2em] block text-[calc(clamp(1.75rem,min(6.4vw,5.4svh),3.75rem)*var(--headline-scale,1))] font-normal leading-[1.05]">
+            memories guaranteed.
+          </span>
         </h1>
-        <p className="hero-sub mt-[clamp(0.5rem,2svh,1.25rem)] max-w-xl font-inter text-base font-normal leading-snug text-white/85 sm:text-lg">
-          Tailor-made trips and group adventures, planned with care.
-        </p>
         <TripFinder />
       </div>
     </section>

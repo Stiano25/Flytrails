@@ -1,278 +1,342 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Quote } from 'lucide-react';
-import { useTestimonials } from '../../hooks/useApi.js';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useReducedMotion } from 'framer-motion';
+import { ArrowRight, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { useCustomerReviews, useTestimonials } from '../../hooks/useApi.js';
+import { findTripType } from '../../data/tripTypes.js';
+import FinderPicker from './FinderPicker.jsx';
 
-/** Drift speed (pixels per second) — transform-based so it works in all browsers */
-const AUTO_SCROLL_PX_PER_SEC = 12;
-const RESUME_MS = 4000;
+/** Words in a story that tell us what kind of trip it was (matches the trip finder's types). */
+const TYPE_HINTS = {
+  hiking: /hik|mount kenya|mt\.? kenya|kilimanjaro|ololokwe|summit|climb|elephant hill|trek|waterfall/i,
+  safari: /maasai mara|\bmara\b|samburu|safari|game drive|wildlife|lion|giraffe/i,
+  group: /\bgroup\b|friends|birthday|\bteam\b/i,
+  family: /\bkids?\b|family|children/i,
+  camping: /\bcamp/i,
+  beach: /beach|diani|zanzibar|watamu|coast|lamu/i,
+  honeymoon: /honeymoon|anniversary/i,
+  halal: /halal/i,
+};
 
-function StarRow() {
+/** Places we can recognise in a story: name for the postmark, photo for the stamp. */
+const PLACES = [
+  [/hell.?s gate/i, 'Hell’s Gate', '/images/trip-types/family.jpg'],
+  [/mount kenya|mt\.? kenya/i, 'Mount Kenya', '/images/trip-types/hiking.jpg'],
+  [/maasai mara|\bmara\b/i, 'Maasai Mara', '/images/trip-types/safari.jpg'],
+  [/samburu/i, 'Samburu', '/images/seasons/migration.jpg'],
+  [/ololokwe/i, 'Ololokwe', '/images/seasons/dry.jpg'],
+  [/tigoni/i, 'Tigoni', '/images/seasons/long-rains.jpg'],
+  [/kilimanjaro/i, 'Kilimanjaro', '/images/trip-types/hiking.jpg'],
+  [/diani/i, 'Diani', '/images/trip-types/beach.jpg'],
+  [/zanzibar/i, 'Zanzibar', '/images/trip-types/honeymoon.jpg'],
+];
+
+/** Filter labels that read better for stories than the finder's wording. */
+const FILTER_LABELS = { group: 'Group trips' };
+
+/** Stamp photos for stories we can't place, used in turn so neighbouring postcards differ. */
+const STAMP_FALLBACKS = ['/images/trip-types/group.jpg', '/images/trip-types/camping.jpg', '/images/trip-types/international.jpg'];
+
+const MAX_PREVIEW = 260;
+
+function tidy(text) {
+  return String(text || '').replace(/^[\s⭐★*]+/, '').trim();
+}
+
+function toStory({ id, name, text, detail = '', photo = '', rating = null, date = null, reply = '' }, index) {
+  const haystack = `${detail} ${text}`;
+  const types = Object.keys(TYPE_HINTS).filter((k) => TYPE_HINTS[k].test(haystack));
+  const match = PLACES.find(([re]) => re.test(haystack));
+  const place = match?.[1] || 'Kenya';
+  const stamp = photo || match?.[2] || STAMP_FALLBACKS[index % STAMP_FALLBACKS.length];
+  const when = date
+    ? new Date(date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
+    : detail.match(/\b(20\d{2})\b/)?.[1] || '';
+  return { id, name, text, stamp, rating, when, place, reply, types };
+}
+
+function Stars({ value = 5, className = 'h-3.5 w-3.5' }) {
   return (
-    <div className="flex gap-0.5" aria-hidden>
+    <span className="inline-flex gap-0.5" aria-label={`${value} out of 5 stars`}>
       {Array.from({ length: 5 }).map((_, i) => (
-        <svg key={i} className="h-3.5 w-3.5 text-accent" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-        </svg>
+        <Star key={i} className={`${className} ${i < value ? 'fill-accent text-accent' : 'text-brand-dark/20'}`} strokeWidth={1.5} aria-hidden />
       ))}
-    </div>
+    </span>
   );
 }
 
-function TestimonialCard({ t }) {
+/** Perforated stamp: the traveller's photo, or a photo of the place they went. */
+function Stamp({ story, className = '' }) {
   return (
-    <article className="flex h-full min-h-[260px] w-[min(85vw,20rem)] shrink-0 flex-col rounded-2xl border border-black/[0.06] bg-white p-6 shadow-[0_12px_40px_-12px_rgba(13,27,42,0.15)] sm:min-h-[280px] sm:w-[20rem] sm:p-7 md:w-[22rem]">
-      <div className="flex items-start justify-between gap-3 border-b border-neutral-100 pb-4">
-        <Quote className="h-8 w-8 shrink-0 text-primary/35" aria-hidden />
-        <StarRow />
-      </div>
+    <span className={`postcard-stamp block shrink-0 rotate-2 shadow-sm ${className}`} aria-hidden>
+      <img src={story.stamp} alt="" loading="lazy" className="h-full w-full object-cover" />
+    </span>
+  );
+}
 
-      <blockquote className="mt-4 flex-1 text-[15px] leading-relaxed text-brand-dark/90 sm:text-base sm:leading-relaxed">
-        {t.quote}
-      </blockquote>
+function Postmark({ story }) {
+  return (
+    <span
+      className="pointer-events-none flex h-[84px] w-[84px] -rotate-12 flex-col items-center justify-center rounded-full border-[1.5px] border-primary/45 text-center text-primary/60"
+      aria-hidden
+    >
+      <span className="max-w-[74px] truncate text-[9px] font-semibold uppercase tracking-[0.06em]">{story.place}</span>
+      <span className="my-0.5 h-px w-10 bg-primary/35" />
+      <span className="text-[10px] font-semibold uppercase tracking-[0.1em]">{story.when}</span>
+    </span>
+  );
+}
 
-      <footer className="mt-6 flex items-center gap-3 border-t border-neutral-100 pt-5">
-        {t.authorImageUrl ? (
-          <img
-            src={t.authorImageUrl}
-            alt=""
-            className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-neutral-100 sm:h-14 sm:w-14"
-            loading="lazy"
-          />
-        ) : (
-          <div
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white ring-2 ring-primary/10 sm:h-14 sm:w-14 sm:text-base"
-            aria-hidden
-          >
-            {t.authorName.charAt(0).toUpperCase()}
-          </div>
-        )}
-        <div className="min-w-0">
-          <p className="font-semibold text-brand-dark">{t.authorName}</p>
-          {t.authorDetail && (
-            <p className="mt-0.5 text-xs text-neutral-500 sm:text-sm">{t.authorDetail}</p>
+function Postcard({ story, index, onOpen }) {
+  const long = story.text.length > MAX_PREVIEW;
+  const tilt = index % 2 === 0 ? 'rotate-[-0.8deg]' : 'rotate-[0.8deg]';
+  return (
+    <li className="w-[min(86vw,23rem)] shrink-0 snap-center sm:w-[36rem]">
+      <article
+        className={`postcard-paper relative flex h-full flex-col rounded-md border border-[#e7dcc6] p-5 shadow-[0_18px_40px_-20px_rgba(13,27,42,0.45)] transition duration-200 hover:-translate-y-1 hover:rotate-0 motion-reduce:rotate-0 motion-reduce:transition-none sm:min-h-[19rem] sm:flex-row sm:gap-6 sm:p-7 ${tilt}`}
+      >
+        {/* Message side */}
+        <div className="flex min-w-0 flex-1 flex-col pr-16 sm:pr-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-dark/45">
+            {story.place} {story.when ? `· ${story.when}` : ''}
+          </p>
+          <blockquote className="mt-3 flex-1 font-heading text-[19px] italic leading-snug text-brand-dark/90 sm:text-xl">
+            <p className="line-clamp-6 whitespace-pre-line">“{long ? `${story.text.slice(0, MAX_PREVIEW).trimEnd()}…` : story.text}”</p>
+          </blockquote>
+          {long && (
+            <button
+              type="button"
+              onClick={() => onOpen(story)}
+              className="mt-3 inline-flex w-fit items-center gap-1.5 rounded-full text-sm font-semibold text-primary underline decoration-accent decoration-2 underline-offset-4 transition-colors hover:text-primary/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              Read the full postcard
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </button>
           )}
+          {/* Phone: signature under the message */}
+          <div className="mt-5 flex items-end justify-between gap-3 border-t border-dashed border-[#d9ccb2] pt-3 sm:hidden">
+            <p className="font-script text-[28px] leading-none text-primary">{story.name}</p>
+            {story.rating ? <Stars value={story.rating} /> : null}
+          </div>
         </div>
-      </footer>
-    </article>
+
+        {/* Address side: divider, stamp, postmark, signature on ruled lines */}
+        <div className="hidden w-44 shrink-0 flex-col border-l border-[#d9ccb2] pl-6 sm:flex">
+          <div className="relative flex justify-end">
+            <Stamp story={story} className="h-[104px] w-[86px]" />
+            <span className="absolute -left-2 top-12">
+              <Postmark story={story} />
+            </span>
+          </div>
+          <div className="mt-auto">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-dark/40">From</p>
+            <p className="mt-1 border-b border-[#d9ccb2] pb-1 font-script text-[30px] leading-tight text-primary">{story.name}</p>
+            <div className="mt-2.5 border-b border-[#d9ccb2] pb-1.5">
+              {story.rating ? <Stars value={story.rating} /> : <span className="text-xs text-brand-dark/45">Flytrails traveller</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* Phone: stamp in the corner */}
+        <Stamp story={story} className="absolute right-4 top-4 h-[68px] w-[56px] sm:hidden" />
+      </article>
+    </li>
   );
 }
 
 export default function TestimonialsSection() {
-  const { data, loading, error } = useTestimonials();
+  const { data: testimonials } = useTestimonials();
+  const { data: reviews } = useCustomerReviews();
+  const reduce = useReducedMotion();
   const trackRef = useRef(null);
-  const offsetRef = useRef(0);
-  const loopWidthRef = useRef(0);
-  const pauseRef = useRef(false);
-  const resumeTimerRef = useRef(null);
-  const lastTickRef = useRef(0);
-  const rafIdRef = useRef(0);
-  const [reducedMotion, setReducedMotion] = useState(false);
-  const applyOffset = useCallback(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    track.style.transform = `translate3d(${-offsetRef.current}px,0,0)`;
-  }, []);
+  const [filter, setFilter] = useState('all');
+  const [fromPlan, setFromPlan] = useState(false);
+  const [openStory, setOpenStory] = useState(null);
+  const lastOpener = useRef(null);
 
-  const measureLoop = useCallback(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const half = track.scrollWidth / 2;
-    loopWidthRef.current = half > 0 ? half : 0;
-    const lw = loopWidthRef.current;
-    if (lw > 0 && offsetRef.current >= lw) {
-      offsetRef.current %= lw;
-      applyOffset();
-    }
-  }, [applyOffset]);
+  const stories = useMemo(() => {
+    const fromTestimonials = (testimonials || []).map((t) =>
+      toStory({ id: `t-${t.id}`, name: t.authorName, text: tidy(t.quote), detail: t.authorDetail, photo: t.authorImageUrl }, 0)
+    );
+    const fromReviews = (reviews || []).map((r, i) =>
+      toStory({ id: `r-${r.id}`, name: r.authorName, text: tidy(r.body), rating: r.rating, date: r.createdAt, reply: r.adminReply }, i)
+    );
+    return [...fromTestimonials, ...fromReviews].filter((s) => s.text);
+  }, [testimonials, reviews]);
 
-  const scheduleResume = useCallback(() => {
-    if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-    pauseRef.current = true;
-    resumeTimerRef.current = setTimeout(() => {
-      pauseRef.current = false;
-      resumeTimerRef.current = null;
-    }, RESUME_MS);
-  }, []);
+  const rated = (reviews || []).filter((r) => r.rating);
+  const average = rated.length ? rated.reduce((sum, r) => sum + r.rating, 0) / rated.length : 0;
 
-  const getStepPx = useCallback(() => {
-    const track = trackRef.current;
-    const first = track?.querySelector('article');
-    if (!first || !track) return 340;
-    const g = window.getComputedStyle(track).gap || '24px';
-    const gap = parseFloat(String(g)) || 24;
-    return first.getBoundingClientRect().width + gap;
-  }, []);
+  const filters = useMemo(() => {
+    const counts = {};
+    stories.forEach((s) => s.types.forEach((t) => (counts[t] = (counts[t] || 0) + 1)));
+    // Only offer a filter when it has at least two stories behind it.
+    return Object.entries(counts)
+      .filter(([value, count]) => findTripType(value) && count >= 2)
+      .sort((a, b) => b[1] - a[1])
+      .map(([value, count]) => ({ value, count, label: FILTER_LABELS[value] || findTripType(value).label }));
+  }, [stories]);
 
-  const scrollByDir = useCallback(
-    (dir) => {
-      scheduleResume();
-      const lw = loopWidthRef.current;
-      if (lw <= 0) return;
-      const step = getStepPx();
-      let next = offsetRef.current + dir * step;
-      next = ((next % lw) + lw) % lw;
-      offsetRef.current = next;
-      applyOffset();
-    },
-    [applyOffset, getStepPx, scheduleResume],
-  );
+  const shown = filter === 'all' ? stories : stories.filter((s) => s.types.includes(filter));
 
+  // When someone picks a trip type in the hero finder, show matching postcards (if we have any).
   useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReducedMotion(mq.matches);
-    const onChange = () => setReducedMotion(mq.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-    };
-  }, []);
-
-  /** Transform-based auto drift — does not use scrollLeft (avoids overflow / subpixel bugs) */
-  useEffect(() => {
-    if (!data?.length || reducedMotion) return;
-
-    let cancelled = false;
-
-    const tick = (now) => {
-      if (cancelled) return;
-      const dt = Math.min((now - lastTickRef.current) / 1000, 0.08);
-      lastTickRef.current = now;
-
-      const track = trackRef.current;
-      if (track && loopWidthRef.current <= 0 && track.scrollWidth > 0) {
-        loopWidthRef.current = track.scrollWidth / 2;
+    const onFinder = (e) => {
+      if (e.detail?.step !== 'choose:type') return;
+      const type = e.detail.type;
+      if (type && filters.some((f) => f.value === type)) {
+        setFilter(type);
+        setFromPlan(true);
       }
-
-      const lw = loopWidthRef.current;
-      if (lw > 0 && !pauseRef.current) {
-        offsetRef.current += AUTO_SCROLL_PX_PER_SEC * dt;
-        if (offsetRef.current >= lw) {
-          offsetRef.current -= lw;
-        }
-        applyOffset();
-      }
-
-      rafIdRef.current = requestAnimationFrame(tick);
     };
+    window.addEventListener('flytrails:finder', onFinder);
+    return () => window.removeEventListener('flytrails:finder', onFinder);
+  }, [filters]);
 
-    lastTickRef.current = performance.now();
-    rafIdRef.current = requestAnimationFrame(tick);
-
-    return () => {
-      cancelled = true;
-      cancelAnimationFrame(rafIdRef.current);
-    };
-  }, [data, reducedMotion, applyOffset]);
-
-  /** Measure after paint + on resize / images */
   useEffect(() => {
-    if (!data?.length) return;
+    trackRef.current?.scrollTo({ left: 0, behavior: 'auto' });
+  }, [filter]);
+
+  function scrollByCard(dir) {
     const track = trackRef.current;
-    if (!track) return;
+    const card = track?.querySelector('li');
+    if (!track || !card) return;
+    track.scrollBy({ left: dir * (card.getBoundingClientRect().width + 24), behavior: reduce ? 'auto' : 'smooth' });
+  }
 
-    const ro = new ResizeObserver(() => {
-      measureLoop();
-      applyOffset();
-    });
-    ro.observe(track);
+  function openFull(story) {
+    lastOpener.current = document.activeElement;
+    setOpenStory(story);
+  }
 
-    requestAnimationFrame(() => {
-      measureLoop();
-      applyOffset();
-    });
+  function closeFull() {
+    setOpenStory(null);
+    requestAnimationFrame(() => lastOpener.current?.focus({ preventScroll: true }));
+  }
 
-    const imgs = track.querySelectorAll('img');
-    const onImg = () => {
-      measureLoop();
-      applyOffset();
-    };
-    imgs.forEach((img) => img.addEventListener('load', onImg));
+  if (!stories.length) return null;
 
-    return () => {
-      ro.disconnect();
-      imgs.forEach((img) => img.removeEventListener('load', onImg));
-    };
-  }, [data, measureLoop, applyOffset]);
-
-  if (loading || error || !data?.length) return null;
-
-  const loopSlides = [...data, ...data];
+  const activeLabel = filters.find((f) => f.value === filter)?.label;
 
   return (
-    <section className="relative overflow-hidden border-t border-black/5 bg-gradient-to-b from-[#f4f1eb] via-white to-[#f8f6f2] py-16 md:py-20">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
-
-      <div className="relative mx-auto max-w-7xl px-4 md:px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.55 }}
-          className="mb-10 text-center md:mb-12"
-        >
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/80">Testimonials</p>
-          <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-brand-dark md:text-4xl">
-            What our guests say
-          </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-neutral-600 md:text-base">
-            {reducedMotion
-              ? 'Use the arrows to move between stories.'
-              : 'Reviews from travelers who explored with Flytrails. Auto-playing carousel — use arrows anytime.'}
-          </p>
-        </motion.div>
-
-        <div className="relative">
-          <div
-            className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[#f8f6f2] to-transparent sm:w-14 md:w-16"
-            aria-hidden
-          />
-          <div
-            className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[#f8f6f2] to-transparent sm:w-14 md:w-16"
-            aria-hidden
-          />
-
-          <button
-            type="button"
-            aria-label="Previous testimonial"
-            onClick={() => scrollByDir(-1)}
-            className="absolute left-0 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white text-brand-dark shadow-md transition hover:border-primary/30 hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:left-1 sm:h-11 sm:w-11"
-          >
-            <ChevronLeft className="h-5 w-5" strokeWidth={2} aria-hidden />
-          </button>
-          <button
-            type="button"
-            aria-label="Next testimonial"
-            onClick={() => scrollByDir(1)}
-            className="absolute right-0 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white text-brand-dark shadow-md transition hover:border-primary/30 hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:right-1 sm:h-11 sm:w-11"
-          >
-            <ChevronRight className="h-5 w-5" strokeWidth={2} aria-hidden />
-          </button>
-
-          <div
-            className="overflow-hidden px-10 sm:px-12 md:px-14"
-            onPointerDown={scheduleResume}
-            onWheel={scheduleResume}
-          >
-            <div
-              ref={trackRef}
-              className="flex w-max gap-5 will-change-transform md:gap-6"
-              style={{ transform: 'translate3d(0,0,0)' }}
-              role="region"
-              aria-roledescription="carousel"
-              aria-label="Traveler testimonials"
-            >
-              {loopSlides.map((t, index) => (
-                <TestimonialCard key={`${t.id}-${index}`} t={t} />
-              ))}
-            </div>
+    <section aria-labelledby="postcards-title" className="relative overflow-hidden bg-[#f4efe4] py-16 md:py-24">
+      <div className="mx-auto max-w-7xl px-4 md:px-6">
+        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#8a6326]">Postcards from our travellers</p>
+            <h2 id="postcards-title" className="mt-2 font-heading text-[2.6rem] font-semibold leading-[1.02] text-brand-dark md:text-6xl">
+              Stories from the trail
+            </h2>
+            {average > 0 && (
+              <p className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-brand-dark/75">
+                <Stars value={Math.round(average)} className="h-4 w-4" />
+                <span>
+                  <strong className="font-semibold text-brand-dark">{average.toFixed(1)}</strong> average from {rated.length} reviews
+                </span>
+                <Link
+                  to="/reviews"
+                  className="inline-flex items-center gap-1 font-semibold text-primary underline decoration-accent decoration-2 underline-offset-4 hover:text-primary/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                >
+                  Read them all
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
+              </p>
+            )}
+          </div>
+          <div className="hidden gap-2 md:flex">
+            {[
+              [-1, 'Previous postcards', ChevronLeft],
+              [1, 'Next postcards', ChevronRight],
+            ].map(([dir, label, Icon]) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => scrollByCard(dir)}
+                aria-label={label}
+                className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-brand-dark/15 bg-white text-brand-dark transition-colors duration-150 hover:border-brand-dark/40 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              >
+                <Icon className="h-5 w-5" aria-hidden />
+              </button>
+            ))}
           </div>
         </div>
+
+        {filters.length > 1 && (
+          <div className="mt-8">
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide" role="group" aria-label="Filter postcards by trip">
+              {[{ value: 'all', label: 'All stories', count: stories.length }, ...filters].map((f) => {
+                const selected = filter === f.value;
+                return (
+                  <button
+                    key={f.value}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => {
+                      setFilter(f.value);
+                      setFromPlan(false);
+                    }}
+                    className={`inline-flex min-h-[40px] shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors duration-150 active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                      selected ? 'border-primary bg-primary text-white' : 'border-brand-dark/15 bg-white/70 text-brand-dark hover:border-brand-dark/40'
+                    }`}
+                  >
+                    {f.label}
+                    <span className={`text-xs tabular-nums ${selected ? 'text-white/70' : 'text-brand-dark/45'}`}>{f.count}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {fromPlan && activeLabel && (
+              <p className="mt-3 text-sm text-brand-dark/65" aria-live="polite">
+                Showing {activeLabel.toLowerCase()} stories to match your plan.{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilter('all');
+                    setFromPlan(false);
+                  }}
+                  className="font-semibold text-primary underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                >
+                  Show all
+                </button>
+              </p>
+            )}
+          </div>
+        )}
       </div>
+
+      <ul
+        ref={trackRef}
+        tabIndex={0}
+        aria-label="Traveller postcards"
+        className="scrollbar-hide mt-8 flex snap-x snap-mandatory gap-6 overflow-x-auto px-[max(1rem,calc((100vw-80rem)/2+1.5rem))] pb-10 pt-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-primary"
+      >
+        {shown.map((story, i) => (
+          <Postcard key={story.id} story={story} index={i} onOpen={openFull} />
+        ))}
+      </ul>
+
+      <FinderPicker
+        open={Boolean(openStory)}
+        stepKey={openStory?.id || 'none'}
+        width={640}
+        title={openStory ? `A postcard from ${openStory.name}` : ''}
+        subtitle={openStory ? `${openStory.place}${openStory.when ? ` · ${openStory.when}` : ''}` : ''}
+        onClose={closeFull}
+      >
+        {openStory && (
+          <div className="postcard-paper rounded-lg border border-[#e7dcc6] p-5 sm:p-6">
+            {openStory.rating ? <Stars value={openStory.rating} className="h-4 w-4" /> : null}
+            <p className="mt-3 whitespace-pre-line font-heading text-xl italic leading-relaxed text-brand-dark/90">{openStory.text}</p>
+            <p className="mt-5 font-script text-[34px] leading-none text-primary">{openStory.name}</p>
+            {openStory.reply && (
+              <div className="mt-5 border-l-2 border-accent pl-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-dark/50">Flytrails replied</p>
+                <p className="mt-1 text-[15px] text-brand-dark/80">{openStory.reply}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </FinderPicker>
     </section>
   );
 }

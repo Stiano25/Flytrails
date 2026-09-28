@@ -4,23 +4,26 @@ import { useReducedMotion } from 'framer-motion';
 import {
   Binoculars,
   Briefcase,
+  CalendarClock,
   Check,
   ChevronDown,
   Globe,
   Heart,
   Luggage,
   Minus,
+  MoonStar,
   Mountain,
   Plus,
   Search,
   Shuffle,
+  Star,
   Tent,
   User,
   Users,
   Waves,
 } from 'lucide-react';
 import { findTripType, tripTypes } from '../../data/tripTypes.js';
-import { seasonHint } from '../../data/seasons.js';
+import { BEST_MONTHS, SEASONS, seasonFor } from '../../data/seasons.js';
 import { trackFinder } from '../../lib/trackFinder.js';
 import FinderPicker from './FinderPicker.jsx';
 
@@ -33,6 +36,7 @@ const TYPE_ICONS = {
   family: Users,
   group: Briefcase,
   international: Globe,
+  halal: MoonStar,
 };
 
 /** Word used inside the sentence: "I'd like a [safari] trip". */
@@ -45,7 +49,15 @@ const TYPE_WORD = {
   family: 'family',
   group: 'group',
   international: 'international',
+  halal: 'halal-friendly',
 };
+
+/** Flexible date choices, shown above the month tiles. `prefix` is the word before the token. */
+const FLEXIBLE = [
+  { value: 'next3', label: 'Next 3 months', token: 'the next 3 months', prefix: 'in ' },
+  { value: 'next6', label: 'Next 6 months', token: 'the next 6 months', prefix: 'in ' },
+  { value: 'flexible', label: 'I’m flexible', token: 'any time', prefix: '' },
+];
 
 const PRESETS = [
   { label: 'Solo', count: 1, note: '1 person', Icon: User },
@@ -56,6 +68,7 @@ const PRESETS = [
 
 const MAX_GROUP = 20;
 const STEPS = ['type', 'when', 'who'];
+const PICKER_WIDTH = { type: 900, when: 780, who: 640 };
 
 const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
 
@@ -73,6 +86,7 @@ const monthLong = (value) => {
   return new Date(y, m - 1, 1).toLocaleDateString('en-GB', { month: 'long' });
 };
 const groupText = (n) => (n >= MAX_GROUP ? `${MAX_GROUP}+` : String(n));
+const isMonth = (when) => /^\d{4}-\d{2}$/.test(when);
 
 /** Arrow keys move between options in a grid (reads the live column count, so it works at every breakpoint). */
 function onGridKeyDown(e) {
@@ -91,6 +105,7 @@ function onGridKeyDown(e) {
   }
 }
 
+/** A tappable blank in the sentence. Chosen values are set in script; placeholders stay plain. */
 function Token({ tokenRef, filled, onClick, children, label }) {
   return (
     <button
@@ -99,13 +114,15 @@ function Token({ tokenRef, filled, onClick, children, label }) {
       onClick={onClick}
       aria-haspopup="dialog"
       aria-label={label}
-      className={`group/token mx-0.5 inline-flex items-baseline gap-1 rounded-lg px-1.5 py-0.5 font-semibold underline decoration-2 underline-offset-[6px] transition-colors duration-150 hover:bg-accent/15 active:scale-[0.98] ${ring} ${
-        filled ? 'text-primary decoration-accent' : 'text-brand-dark/55 decoration-brand-dark/25 decoration-dashed'
+      className={`group/token mx-0.5 inline-flex items-baseline gap-1 rounded-lg px-1.5 py-0.5 underline decoration-2 transition-colors duration-150 hover:bg-accent/15 active:scale-[0.98] ${ring} ${
+        filled
+          ? 'font-script text-[1.6em] font-normal leading-[0.9] text-primary decoration-accent underline-offset-[5px]'
+          : 'font-semibold text-brand-dark/55 decoration-brand-dark/25 decoration-dashed underline-offset-[6px]'
       }`}
     >
       {children}
       <ChevronDown
-        className="h-4 w-4 translate-y-0.5 self-center opacity-70 transition-transform duration-150 group-hover/token:translate-y-1"
+        className="h-4 w-4 translate-y-0.5 self-center font-sans opacity-70 transition-transform duration-150 group-hover/token:translate-y-1"
         strokeWidth={2.5}
         aria-hidden
       />
@@ -129,6 +146,8 @@ export default function TripFinder() {
   const lastToken = useRef('type');
 
   const type = findTripType(plan.type);
+  const flexible = FLEXIBLE.find((f) => f.value === plan.when);
+  const bestMonths = (answered.type && BEST_MONTHS[plan.type]) || null;
 
   const open = (step) => {
     lastToken.current = step;
@@ -163,7 +182,10 @@ export default function TripFinder() {
     }
   };
 
-  const monthWord = answered.when && plan.when && plan.when !== 'flexible' ? monthLong(plan.when) : '';
+  const monthWord = answered.when && isMonth(plan.when) ? monthLong(plan.when) : '';
+  const whenToken = answered.when ? monthWord || flexible?.token : '';
+  const whenPrefix = answered.when && flexible ? flexible.prefix : 'in ';
+
   const buttonLabel = (() => {
     const parts = ['Plan my'];
     if (monthWord) parts.push(monthWord);
@@ -176,7 +198,8 @@ export default function TripFinder() {
     e.preventDefault();
     const params = new URLSearchParams();
     if (answered.type && plan.type) params.set('type', plan.type);
-    if (answered.when && plan.when && plan.when !== 'flexible') params.set('month', plan.when);
+    if (answered.when && isMonth(plan.when)) params.set('month', plan.when);
+    if (answered.when && flexible) params.set('when', flexible.value);
     if (answered.who) params.set('group', groupText(plan.group));
     trackFinder('submit', Object.fromEntries(params));
     navigate(`/custom-tours?${params.toString() || 'start=1'}#inquiry`);
@@ -184,105 +207,146 @@ export default function TripFinder() {
 
   const article = answered.type && type ? (/^[aeiou]/i.test(TYPE_WORD[type.value]) ? 'an' : 'a') : '';
 
+  const tileBase = `group relative overflow-hidden text-left transition-transform duration-150 active:scale-[0.97] ${ring}`;
+  const selectedRing = 'ring-[3px] ring-accent ring-offset-2 ring-offset-[#fbfaf7]';
+
   const pickers = {
     type: {
       title: 'What kind of trip?',
       subtitle: 'Pick the one that sounds most like you.',
       body: (
-        <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4" onKeyDown={onGridKeyDown}>
-            {tripTypes.map((t) => {
-              const Icon = TYPE_ICONS[t.value];
-              const selected = answered.type && plan.type === t.value;
-              return (
-                <button
-                  key={t.value}
-                  type="button"
-                  data-grid-item
-                  aria-pressed={selected}
-                  onClick={() => choose('type', { type: t.value, ...(t.value === 'honeymoon' && !answered.who ? { group: 2 } : {}) })}
-                  className={`group relative aspect-[4/3] overflow-hidden rounded-2xl text-left transition-transform duration-150 active:scale-[0.98] ${ring} ${
-                    selected ? 'ring-[3px] ring-accent ring-offset-2 ring-offset-[#fbfaf7]' : ''
-                  }`}
-                >
-                  <img
-                    src={t.image}
-                    alt=""
-                    width="480"
-                    height="360"
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.05]"
-                  />
-                  <span className="absolute inset-0 bg-gradient-to-t from-brand-dark/85 via-brand-dark/20 to-transparent" />
-                  <span className="absolute left-2.5 top-2.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-primary">
-                    {selected ? <Check className="h-4 w-4" strokeWidth={3} aria-hidden /> : <Icon className="h-4 w-4" strokeWidth={2} aria-hidden />}
-                  </span>
-                  <span className="absolute inset-x-0 bottom-0 p-3 text-[15px] font-semibold leading-tight text-white">{t.label}</span>
-                </button>
-              );
-            })}
-          </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5" onKeyDown={onGridKeyDown}>
+          {tripTypes.map((t) => {
+            const Icon = TYPE_ICONS[t.value];
+            const selected = answered.type && plan.type === t.value;
+            return (
+              <button
+                key={t.value}
+                type="button"
+                data-grid-item
+                aria-pressed={selected}
+                onClick={() => choose('type', { type: t.value, ...(t.value === 'honeymoon' && !answered.who ? { group: 2 } : {}) })}
+                className={`${tileBase} aspect-[4/3] rounded-2xl ${selected ? selectedRing : ''}`}
+              >
+                <img
+                  src={t.image}
+                  alt=""
+                  width="480"
+                  height="360"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.05]"
+                />
+                <span className="absolute inset-0 bg-gradient-to-t from-brand-dark/85 via-brand-dark/20 to-transparent" />
+                <span className="absolute left-2.5 top-2.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-primary">
+                  {selected ? <Check className="h-4 w-4" strokeWidth={3} aria-hidden /> : <Icon className="h-4 w-4" strokeWidth={2} aria-hidden />}
+                </span>
+                <span className="absolute inset-x-0 bottom-0 p-3 text-[15px] font-semibold leading-tight text-white">{t.label}</span>
+              </button>
+            );
+          })}
           <button
             type="button"
+            data-grid-item
             aria-pressed={answered.type && !plan.type}
             onClick={() => choose('type', { type: '' })}
-            className={`mt-3 flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-brand-dark/25 text-[15px] font-medium text-brand-dark transition-colors duration-150 hover:border-brand-dark/50 hover:bg-brand-dark/[0.03] ${ring}`}
+            className={`${tileBase} flex aspect-[4/3] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-brand-dark/20 bg-white text-center text-brand-dark hover:border-brand-dark/45 ${
+              answered.type && !plan.type ? selectedRing : ''
+            }`}
           >
-            <Shuffle className="h-4 w-4" aria-hidden />
-            Not sure yet, help me choose
+            <Shuffle className="h-5 w-5 text-primary" aria-hidden />
+            <span className="px-2 text-[15px] font-semibold leading-tight">Not sure yet</span>
+            <span className="-mt-1 text-xs text-brand-dark/55">Help me choose</span>
           </button>
-        </>
+        </div>
       ),
     },
     when: {
       title: 'When would you like to go?',
-      subtitle: 'A month is enough to start planning.',
+      subtitle: 'Pick a month, or keep it open.',
       body: (
         <>
-          <button
-            type="button"
-            aria-pressed={answered.when && plan.when === 'flexible'}
-            onClick={() => choose('when', { when: 'flexible' })}
-            className={`mb-3 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl border text-[15px] font-medium transition-colors duration-150 active:scale-[0.99] ${ring} ${
-              answered.when && plan.when === 'flexible'
-                ? 'border-primary bg-primary text-white'
-                : 'border-dashed border-brand-dark/25 text-brand-dark hover:border-brand-dark/50'
-            }`}
-          >
-            <Shuffle className="h-4 w-4" aria-hidden />
-            I’m flexible
-          </button>
-          <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4" onKeyDown={onGridKeyDown}>
-            {months.map((m) => {
-              const hint = seasonHint(m.date.getMonth());
-              const selected = answered.when && plan.when === m.value;
+          <div className="flex flex-wrap gap-2">
+            {FLEXIBLE.map((f) => {
+              const selected = answered.when && plan.when === f.value;
               return (
                 <button
-                  key={m.value}
+                  key={f.value}
                   type="button"
-                  data-grid-item
                   aria-pressed={selected}
-                  aria-label={`${m.date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}${hint ? `, ${hint.label}` : ''}`}
-                  onClick={() => choose('when', { when: m.value })}
-                  className={`flex min-h-[76px] flex-col items-start justify-between rounded-2xl border px-3 py-2.5 text-left transition-colors duration-150 active:scale-[0.98] ${ring} ${
-                    selected ? 'border-primary bg-primary text-white' : 'border-brand-dark/10 bg-white text-brand-dark hover:border-brand-dark/35'
+                  onClick={() => choose('when', { when: f.value })}
+                  className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 text-[15px] font-medium transition-colors duration-150 active:scale-[0.97] ${ring} ${
+                    selected ? 'border-primary bg-primary text-white' : 'border-brand-dark/15 bg-white text-brand-dark hover:border-brand-dark/40'
                   }`}
                 >
-                  <span className="flex w-full items-baseline justify-between gap-1">
-                    <span className="text-lg font-semibold leading-none">{m.date.toLocaleDateString('en-GB', { month: 'short' })}</span>
-                    <span className={`text-xs ${selected ? 'text-white/70' : 'text-brand-dark/45'}`}>{m.date.getFullYear()}</span>
-                  </span>
-                  {hint ? (
-                    <span
-                      className={`mt-2 inline-flex items-center rounded-full px-1.5 py-0.5 text-[11px] font-medium ${
-                        selected ? 'bg-white/15 text-white' : hint.tone === 'peak' ? 'bg-accent/20 text-[#7a5418]' : 'bg-primary/10 text-primary'
-                      }`}
-                    >
-                      {hint.label}
-                    </span>
-                  ) : (
-                    <span className="mt-2 h-[18px]" aria-hidden />
-                  )}
+                  {f.value === 'flexible' ? <Shuffle className="h-4 w-4" aria-hidden /> : <CalendarClock className="h-4 w-4" aria-hidden />}
+                  {f.label}
                 </button>
+              );
+            })}
+          </div>
+
+          {/* Legend for the colour strip on each month tile. */}
+          <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-brand-dark/65" aria-label="Seasons">
+            {Object.values(SEASONS).map((s) => (
+              <li key={s.label} className="inline-flex items-center gap-1.5">
+                <span className={`h-2 w-4 rounded-full ${s.strip}`} aria-hidden />
+                {s.label}
+              </li>
+            ))}
+            {bestMonths && (
+              <li className="inline-flex items-center gap-1.5 font-medium text-brand-dark/80">
+                <Star className="h-3.5 w-3.5 fill-accent text-accent" aria-hidden />
+                Good time for {type.noun}
+              </li>
+            )}
+          </ul>
+
+          <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-8" onKeyDown={onGridKeyDown}>
+            {months.map((m, i) => {
+              const monthIndex = m.date.getMonth();
+              const season = seasonFor(monthIndex);
+              const good = bestMonths?.includes(monthIndex);
+              const selected = answered.when && plan.when === m.value;
+              const newYear = i === 0 || monthIndex === 0;
+              return (
+                <div key={m.value} className="contents">
+                  {newYear && (
+                    <p className="col-span-full mt-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand-dark/50 first:mt-0">
+                      {m.date.getFullYear()}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    data-grid-item
+                    aria-pressed={selected}
+                    aria-label={`${m.date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}, ${season.label}${
+                      good ? `, good time for ${type.noun}` : ''
+                    }`}
+                    onClick={() => choose('when', { when: m.value })}
+                    className={`${tileBase} h-[72px] rounded-xl sm:h-[68px] ${selected ? selectedRing : ''}`}
+                  >
+                    <img
+                      src={season.image}
+                      alt=""
+                      width="320"
+                      height="240"
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.06]"
+                    />
+                    <span className="absolute inset-0 bg-gradient-to-t from-brand-dark/85 via-brand-dark/35 to-brand-dark/10" />
+                    {(selected || good) && (
+                      <span className="absolute right-1.5 top-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-accent text-brand-dark">
+                        {selected ? (
+                          <Check className="h-3 w-3" strokeWidth={3.5} aria-hidden />
+                        ) : (
+                          <Star className="h-3 w-3 fill-brand-dark" strokeWidth={0} aria-hidden />
+                        )}
+                      </span>
+                    )}
+                    <span className="absolute bottom-3 left-2.5 text-base font-semibold text-white">
+                      {m.date.toLocaleDateString('en-GB', { month: 'short' })}
+                    </span>
+                    <span className={`absolute inset-x-0 bottom-0 h-1.5 ${season.strip}`} aria-hidden />
+                  </button>
+                </div>
               );
             })}
           </div>
@@ -376,14 +440,14 @@ export default function TripFinder() {
           >
             {answered.type && type ? TYPE_WORD[type.value] : 'any kind of'}
           </Token>{' '}
-          trip {!(answered.when && plan.when === 'flexible') && 'in '}
+          trip {whenPrefix}
           <Token
             tokenRef={whenRef}
             filled={answered.when}
             onClick={() => open('when')}
-            label={`When: ${answered.when ? (plan.when === 'flexible' ? 'flexible' : monthWord) : 'not chosen'}. Change`}
+            label={`When: ${whenToken || 'not chosen'}. Change`}
           >
-            {answered.when ? (plan.when === 'flexible' ? 'any time' : monthWord) : 'any month'}
+            {whenToken || 'any month'}
           </Token>{' '}
           for{' '}
           <Token
@@ -424,6 +488,7 @@ export default function TripFinder() {
         anchorRef={barRef}
         tokenRef={tokenRefs[active || lastToken.current]}
         stepKey={active || 'none'}
+        width={PICKER_WIDTH[active] || 760}
         title={active ? pickers[active].title : ''}
         subtitle={active ? pickers[active].subtitle : ''}
         onClose={close}
