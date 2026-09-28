@@ -18,19 +18,10 @@ module.exports = {
       },
       fontFamily: {
         beauty: ['"Beauty Mountains"', 'cursive'],
-        /** Editorial serif for headlines (self-hosted in /public/fonts) */
-        /** Home hero headline and trip finder (self-hosted variable font in /public/fonts) */
+        /** Site typeface: Inter, self-hosted variable font in /public/fonts (Helvetica stack as fallback). */
+        sans: ['Inter', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
+        display: ['Inter', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
         inter: ['Inter', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
-        serif: ['Newsreader', 'Georgia', '"Times New Roman"', 'serif'],
-        /** UI typography — Helvetica stack (falls back to system sans on platforms without Helvetica) */
-        display: [
-          '"Helvetica Neue"',
-          'Helvetica',
-          'Arial',
-          'system-ui',
-          'sans-serif',
-        ],
-        sans: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         fadeIn: {

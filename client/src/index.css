@@ -18,14 +18,6 @@
   font-display: swap;
 }
 
-@font-face {
-  font-family: 'Newsreader';
-  src: url('/fonts/newsreader-latin.woff2') format('woff2');
-  font-weight: 200 800;
-  font-style: normal;
-  font-display: swap;
-}
-
 html {
   scroll-behavior: smooth;
 }
@@ -45,7 +37,7 @@ html {
 }
 
 body {
-  @apply font-sans font-light text-brand-dark antialiased;
+  @apply font-sans font-normal text-brand-dark antialiased;
   background: linear-gradient(135deg, #f8f5f0 0%, #ffffff 50%, #f4f2ee 100%);
   min-height: 100vh;
 }
