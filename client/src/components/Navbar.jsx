@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   Home,
   MapPinned,
@@ -14,8 +13,8 @@ import {
   Building2,
   ChevronDown,
   Star,
+  Luggage,
 } from 'lucide-react';
-import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
 
 const primaryLinks = [
   { to: '/', label: 'Home', end: true, Icon: Home },
@@ -40,31 +39,105 @@ const aboutLinks = [
   { to: '/about', label: 'About', Icon: Info },
 ];
 
+/**
+ * Desktop menu: opens on hover (with a short close delay so diagonal mouse moves don't shut it),
+ * on click/tap, and from the keyboard (Enter, Space, ArrowDown); Escape or clicking elsewhere closes it.
+ */
 function Dropdown({ label, items, openMenu, setOpenMenu, overlay }) {
   const isOpen = openMenu === label;
+  const wrapRef = useRef(null);
+  const buttonRef = useRef(null);
+  const closeTimer = useRef(0);
+  const menuId = `menu-${label.toLowerCase()}`;
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onDown = (e) => {
+      if (!wrapRef.current?.contains(e.target)) setOpenMenu('');
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') {
+        setOpenMenu('');
+        buttonRef.current?.focus();
+      }
+    };
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [isOpen, setOpenMenu]);
+
+  function focusItem(index) {
+    requestAnimationFrame(() => wrapRef.current?.querySelectorAll('[role="menu"] a')[index]?.focus());
+  }
 
   return (
     <div
+      ref={wrapRef}
       className="relative"
-      onMouseEnter={() => setOpenMenu(label)}
-      onMouseLeave={() => setOpenMenu('')}
+      onMouseEnter={() => {
+        clearTimeout(closeTimer.current);
+        setOpenMenu(label);
+      }}
+      onMouseLeave={() => {
+        closeTimer.current = setTimeout(() => setOpenMenu(''), 160);
+      }}
+      onBlur={(e) => {
+        if (!wrapRef.current?.contains(e.relatedTarget)) setOpenMenu('');
+      }}
     >
       <button
+        ref={buttonRef}
         type="button"
-        className={`flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium transition ${
-          overlay ? 'text-white/90 hover:text-white' : 'text-neutral-700 hover:text-primary'
+        aria-haspopup="true"
+        aria-expanded={isOpen}
+        aria-controls={menuId}
+        onClick={() => setOpenMenu(isOpen ? '' : label)}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setOpenMenu(label);
+            focusItem(0);
+          }
+        }}
+        className={`flex items-center gap-1 rounded-full px-3 py-2 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-orange ${
+          overlay ? 'text-white/90 hover:text-white' : 'text-brand-dark/75 hover:text-primary'
         }`}
       >
         {label}
-        <ChevronDown className={`h-4 w-4 transition ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-4 w-4 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`} aria-hidden />
       </button>
       {isOpen && (
-        <div className="absolute left-0 top-full z-50 w-60 pt-2" role="presentation">
-          <div className="rounded-2xl border border-white/40 bg-white/90 p-2 shadow-xl backdrop-blur-xl">
+        <div className="absolute left-1/2 top-full z-50 w-60 -translate-x-1/2 pt-2">
+          <div
+            id={menuId}
+            role="menu"
+            aria-label={label}
+            className="picker-fade rounded-2xl border border-brand-dark/10 bg-white p-2 shadow-xl"
+            onKeyDown={(e) => {
+              const links = [...e.currentTarget.querySelectorAll('a')];
+              const i = links.indexOf(document.activeElement);
+              if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                links[(i + 1) % links.length]?.focus();
+              } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                links[(i - 1 + links.length) % links.length]?.focus();
+              }
+            }}
+          >
             {items.map(({ to, label: itemLabel, Icon }) => (
-              <NavLink key={to} to={to} className="block rounded-xl px-3 py-2.5 text-sm text-neutral-700 transition hover:bg-primary/10 hover:text-primary">
-                <span className="flex items-center gap-2">
-                  <Icon className="h-4 w-4" />
+              <NavLink
+                key={to}
+                to={to}
+                role="menuitem"
+                onClick={() => setOpenMenu('')}
+                className="block rounded-xl px-3 py-2.5 text-sm text-brand-dark/80 transition-colors hover:bg-brand-bg hover:text-primary focus-visible:bg-brand-bg focus-visible:text-primary focus-visible:outline-none"
+              >
+                <span className="flex items-center gap-2.5">
+                  <Icon className="h-4 w-4 text-brand-dark/45" aria-hidden />
                   {itemLabel}
                 </span>
               </NavLink>
@@ -82,7 +155,6 @@ export default function Navbar() {
   const [hidden, setHidden] = useState(false);
   const [openMenu, setOpenMenu] = useState('');
   const lastY = useRef(0);
-  const whatsappHref = useWhatsappLink();
   const isHome = useLocation().pathname === '/';
 
   useEffect(() => {
@@ -117,37 +189,34 @@ export default function Navbar() {
             : 'border-white/25 bg-white/45 backdrop-blur-xl'
       }`}
     >
-      <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6" aria-label="Main">
-        <Link to="/" className="flex shrink-0 items-center gap-2 text-brand-dark">
+      <nav className="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-4 px-4 py-3 md:px-6 lg:grid-cols-[1fr_auto_1fr]" aria-label="Main">
+        <Link to="/" className="flex shrink-0 items-center gap-2 justify-self-start text-brand-dark" aria-label="Flytrails home">
           <img 
             src="/images/flytrailsnewlogo.png"
-            alt="Flytrails Logo" 
+            alt="Flytrails" 
             className={`h-11 w-auto transition duration-300 md:h-12 ${overlay ? 'brightness-0 invert' : ''}`}
           />
         </Link>
 
-        <div className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 px-2 lg:flex xl:px-4">
-          {primaryLinks.map(({ to, label, end, Icon }) => (
-            <NavLink key={to} to={to} end={end} className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-accent">
-              {({ isActive }) => (
-                <motion.span
-                  className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
-                    overlay
-                      ? isActive
-                        ? 'bg-white/15 text-white'
-                        : 'text-white/90 hover:text-white'
-                      : isActive
-                        ? 'bg-primary/15 text-primary shadow-inner'
-                        : 'text-neutral-700 hover:text-primary'
-                  }`}
-                  whileHover={{ y: -2, scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                >
-                  <Icon className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
-                  {label}
-                </motion.span>
-              )}
+        <div className="hidden items-center justify-center gap-1 lg:flex">
+          {primaryLinks.map(({ to, label, end }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) =>
+                `rounded-full px-3 py-2 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-orange ${
+                  overlay
+                    ? isActive
+                      ? 'bg-white/15 text-white'
+                      : 'text-white/90 hover:text-white'
+                    : isActive
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-brand-dark/75 hover:text-primary'
+                }`
+              }
+            >
+              {label}
             </NavLink>
           ))}
           <Dropdown overlay={overlay} label="Explore" items={exploreLinks} openMenu={openMenu} setOpenMenu={setOpenMenu} />
@@ -155,15 +224,19 @@ export default function Navbar() {
           <Dropdown overlay={overlay} label="Community" items={aboutLinks} openMenu={openMenu} setOpenMenu={setOpenMenu} />
         </div>
 
-        <div className="flex items-center gap-2">
-          <a
-            href={whatsappHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden rounded-full border border-primary/30 bg-primary/90 px-5 py-2.5 text-sm font-semibold text-white shadow-md backdrop-blur-sm transition hover:bg-primary hover:shadow-lg md:inline-flex"
+        <div className="flex items-center justify-end gap-2">
+          {/* One quiet utility on the right: straight to the trip finder. */}
+          <Link
+            to="/?plan=1"
+            className={`hidden items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors lg:inline-flex focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-orange ${
+              overlay
+                ? 'border-white/40 text-white hover:bg-white/10'
+                : 'border-brand-dark/15 text-brand-dark hover:border-brand-orange hover:text-brand-dark'
+            }`}
           >
-            Book now
-          </a>
+            <Luggage className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+            Plan my trip
+          </Link>
           <button
             type="button"
             className={`inline-flex items-center justify-center rounded-full border p-2.5 backdrop-blur-sm transition lg:hidden ${
@@ -260,14 +333,14 @@ export default function Navbar() {
               {label}
             </NavLink>
           ))}
-          <a
-            href={whatsappHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-3 flex justify-center rounded-full border border-primary/25 bg-primary py-3 text-center text-sm font-semibold text-white shadow-md"
+          <Link
+            to="/?plan=1"
+            onClick={() => setOpen(false)}
+            className="mt-3 flex items-center justify-center gap-2 rounded-full bg-brand-orange py-3 text-center text-sm font-semibold text-brand-dark"
           >
-            Book now
-          </a>
+            <Luggage className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+            Plan my trip
+          </Link>
         </div>
       </div>
     </header>
