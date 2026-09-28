@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
+import MobileMenu from './MobileMenu.jsx';
 import {
   Home,
   MapPinned,
@@ -167,6 +168,7 @@ export default function Navbar() {
   const [openMenu, setOpenMenu] = useState('');
   const lastY = useRef(0);
   const isHome = useLocation().pathname === '/';
+  const closeMenu = useCallback(() => setOpen(false), []);
 
   useEffect(() => {
     const onScroll = () => {
@@ -257,9 +259,9 @@ export default function Navbar() {
             }`}
             aria-expanded={open}
             aria-controls="mobile-menu"
-            onClick={() => setOpen((v) => !v)}
+            aria-label="Open menu"
+            onClick={() => setOpen(true)}
           >
-            <span className="sr-only">Toggle menu</span>
             {open ? (
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -273,87 +275,16 @@ export default function Navbar() {
         </div>
       </nav>
 
-      <div
-        id="mobile-menu"
-        className={`overflow-hidden border-t border-white/30 bg-white/55 backdrop-blur-xl transition-all duration-300 lg:hidden ${
-          open ? 'max-h-[min(85dvh,100%)] opacity-100' : 'max-h-0 opacity-0'
-        }`}
-      >
-        <div className="flex max-h-[min(75dvh,28rem)] flex-col gap-0.5 overflow-y-auto overscroll-contain px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          {primaryLinks.map(({ to, label, end, Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3 py-3 text-base font-medium transition ${
-                  isActive ? 'bg-primary/12 text-primary' : 'text-neutral-800 hover:bg-white/40'
-                }`
-              }
-              onClick={() => setOpen(false)}
-            >
-              <Icon className="h-5 w-5 shrink-0 opacity-90" aria-hidden />
-              {label}
-            </NavLink>
-          ))}
-          <p className="mt-3 px-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">Explore</p>
-          {exploreLinks.map(({ to, label, Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3 py-3 text-base font-medium transition ${
-                  isActive ? 'bg-primary/12 text-primary' : 'text-neutral-800 hover:bg-white/40'
-                }`
-              }
-              onClick={() => setOpen(false)}
-            >
-              <Icon className="h-5 w-5 shrink-0 opacity-90" aria-hidden />
-              {label}
-            </NavLink>
-          ))}
-          <p className="mt-3 px-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">Discover</p>
-          {discoverLinks.map(({ to, label, Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3 py-3 text-base font-medium transition ${
-                  isActive ? 'bg-primary/12 text-primary' : 'text-neutral-800 hover:bg-white/40'
-                }`
-              }
-              onClick={() => setOpen(false)}
-            >
-              <Icon className="h-5 w-5 shrink-0 opacity-90" aria-hidden />
-              {label}
-            </NavLink>
-          ))}
-          <p className="mt-3 px-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">Community</p>
-          {aboutLinks.map(({ to, label, Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3 py-3 text-base font-medium transition ${
-                  isActive ? 'bg-primary/12 text-primary' : 'text-neutral-800 hover:bg-white/40'
-                }`
-              }
-              onClick={() => setOpen(false)}
-            >
-              <Icon className="h-5 w-5 shrink-0 opacity-90" aria-hidden />
-              {label}
-            </NavLink>
-          ))}
-          <Link
-            to="/?plan=1"
-            onClick={() => setOpen(false)}
-            className="mt-3 flex items-center justify-center gap-2 rounded-full bg-brand-orange py-3 text-center text-sm font-semibold text-brand-dark"
-          >
-            <Luggage className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-            Plan my trip
-          </Link>
-        </div>
-      </div>
+      <MobileMenu
+        open={open}
+        onClose={closeMenu}
+        primaryLinks={primaryLinks}
+        groups={[
+          { label: 'Explore', items: exploreLinks },
+          { label: 'Discover', items: discoverLinks },
+          { label: 'Community', items: aboutLinks },
+        ]}
+      />
     </header>
   );
 }
