@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Building2, Users, UserRound, Heart, CarFront, MessageCircle } from 'lucide-react';
 import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
+import { tripTypes } from '../data/tripTypes.js';
 
 const services = [
   {
@@ -33,19 +35,42 @@ const services = [
 const inputClass = 'glass-input mt-1.5 w-full';
 const labelClass = 'text-xs font-bold uppercase tracking-wider text-brand-dark/70';
 
+/** '2026-10' -> 'October 2026' (the home trip finder passes months this way). */
+function monthLabel(value) {
+  const m = /^(\d{4})-(\d{2})$/.exec(value || '');
+  if (!m) return '';
+  return new Date(Number(m[1]), Number(m[2]) - 1, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+}
+
 export default function CustomTours() {
   const [sent, setSent] = useState(false);
-  const [form, setForm] = useState({
+  const [searchParams] = useSearchParams();
+  const formRef = useRef(null);
+  // Pre-fill from the home page trip finder (?type=safari&month=2026-10&group=4).
+  const [form, setForm] = useState(() => ({
     name: '',
     email: '',
     phone: '',
+    tripType: tripTypes.some((t) => t.value === searchParams.get('type')) ? searchParams.get('type') : '',
     destination: '',
-    dates: '',
-    groupSize: '',
+    dates: monthLabel(searchParams.get('month')),
+    groupSize: searchParams.get('group') || '',
     budget: '',
     requests: '',
-  });
+  }));
   const whatsappHref = useWhatsappLink();
+  const fromFinder = searchParams.has('type') || searchParams.has('month') || searchParams.has('group');
+
+  // Coming from the finder: skip past the service cards straight to the form.
+  useEffect(() => {
+    if (!fromFinder || !formRef.current) return;
+    const id = requestAnimationFrame(() => {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      formRef.current.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      formRef.current.querySelector('input[name="name"]')?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [fromFinder]);
 
   function handleChange(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -78,7 +103,7 @@ export default function CustomTours() {
           ))}
         </div>
 
-        <div className="glass-surface-strong mt-16 rounded-3xl p-6 md:p-10">
+        <div id="inquiry" ref={formRef} className="glass-surface-strong mt-16 scroll-mt-24 rounded-3xl p-6 md:p-10">
           <h2 className="font-display text-2xl font-bold text-brand-dark">Inquiry form</h2>
           {sent ? (
             <p className="mt-6 rounded-2xl border border-primary/20 bg-primary/10 px-4 py-4 font-light text-brand-dark">
@@ -116,6 +141,17 @@ export default function CustomTours() {
                   onChange={handleChange}
                   className={inputClass}
                 />
+              </label>
+              <label className="flex flex-col text-sm">
+                <span className={labelClass}>Trip type</span>
+                <select name="tripType" value={form.tripType} onChange={handleChange} className={inputClass}>
+                  <option value="">Select</option>
+                  {tripTypes.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
               </label>
               <label className="flex flex-col text-sm">
                 <span className={labelClass}>Destination</span>

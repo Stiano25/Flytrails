@@ -142,9 +142,9 @@ html {
 /* Home hero: fills the whole screen; the navbar floats over it on the home page. */
 .home-hero {
   --nav-h: 71px;
-  height: 100vh;
-  height: 100svh;
-  min-height: 24rem; /* landscape phones: never squeeze the copy below this */
+  /* At least one full screen; grows instead of clipping when the content is taller (landscape phones). */
+  min-height: 100vh;
+  min-height: 100svh;
 }
 
 @media (min-width: 768px) {

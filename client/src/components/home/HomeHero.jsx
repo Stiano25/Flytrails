@@ -1,7 +1,4 @@
-import { Link } from 'react-router-dom';
-
-const focusRing =
-  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white';
+import TripFinder from './TripFinder.jsx';
 
 export default function HomeHero() {
   return (
@@ -49,20 +46,7 @@ export default function HomeHero() {
         >
           Tailor-made trips and group adventures, planned with care.
         </h1>
-        <div className="mt-9 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:justify-center sm:gap-4 [@media(max-height:500px)]:mt-4">
-          <Link
-            to="/custom-tours"
-            className={`inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-accent px-8 text-base font-semibold text-brand-dark shadow-lg transition-colors duration-200 hover:bg-[#e0bb82] sm:w-auto ${focusRing}`}
-          >
-            Plan my trip
-          </Link>
-          <Link
-            to="/trips"
-            className={`inline-flex min-h-[48px] w-full items-center justify-center rounded-full border border-white/60 bg-white/5 px-8 text-base font-medium text-white transition-colors duration-200 hover:border-white hover:bg-white/15 sm:w-auto ${focusRing}`}
-          >
-            Explore trips
-          </Link>
-        </div>
+        <TripFinder />
       </div>
     </section>
   );
