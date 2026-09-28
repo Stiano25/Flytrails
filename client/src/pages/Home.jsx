@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import HeroCarousel from '../components/home/HeroCarousel.jsx';
+import HomeHero from '../components/home/HomeHero.jsx';
 import JoinSection from '../components/home/JoinSection.jsx';
 import TestimonialsSection from '../components/home/TestimonialsSection.jsx';
 import PopularAdventureCard from '../components/home/PopularAdventureCard.jsx';
@@ -91,7 +91,7 @@ export default function Home() {
 
   return (
     <>
-      <HeroCarousel />
+      <HomeHero />
       <JoinSection />
       <TestimonialsSection />
 
