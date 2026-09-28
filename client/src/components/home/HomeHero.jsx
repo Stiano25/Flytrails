@@ -7,23 +7,26 @@ export default function HomeHero() {
   return (
     <section className="home-hero relative isolate flex overflow-hidden bg-brand-dark" aria-labelledby="home-hero-title">
       <img
-        src="/images/hero-sunset-beach.jpg"
+        src="/images/hero-palm-coast.jpg"
         alt=""
-        width="1170"
-        height="780"
-        className="absolute inset-0 -z-10 h-full w-full object-cover object-[50%_55%]"
+        width="1332"
+        height="749"
+        className="absolute inset-0 -z-10 h-full w-full object-cover object-[60%_60%]"
         decoding="async"
         fetchpriority="high"
       />
-      {/* Scrims: even base tint, a soft pool behind the centred copy, and a top band so the transparent navbar reads. */}
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-brand-dark/15" aria-hidden />
+      {/* Dark gradient: heavier at the top (navbar) and bottom, a lighter band through the middle, plus a soft pool behind the copy. */}
       <div
         className="pointer-events-none absolute inset-0 -z-10"
-        style={{ background: 'radial-gradient(ellipse 70% 55% at 50% 55%, rgba(13,27,42,0.5), transparent 72%)' }}
+        style={{
+          background:
+            'linear-gradient(to bottom, rgba(13,27,42,0.7) 0%, rgba(13,27,42,0.45) 30%, rgba(13,27,42,0.45) 60%, rgba(13,27,42,0.8) 100%)',
+        }}
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-40 bg-gradient-to-b from-brand-dark/60 to-transparent"
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{ background: 'radial-gradient(ellipse 65% 50% at 50% 50%, rgba(13,27,42,0.35), transparent 75%)' }}
         aria-hidden
       />
 

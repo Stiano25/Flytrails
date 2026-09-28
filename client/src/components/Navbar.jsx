@@ -89,9 +89,9 @@ export default function Navbar() {
     const onScroll = () => {
       const y = window.scrollY;
       setScrolled(y > 12);
-      // Home only: tuck the bar away while scrolling down, bring it back as soon as the user scrolls up.
+      // Tuck the bar away while scrolling down, bring it back as soon as the user scrolls up.
       if (Math.abs(y - lastY.current) > 6) {
-        setHidden(isHome && y > lastY.current && y > 120);
+        setHidden(y > lastY.current && y > 120);
         lastY.current = y;
       }
     };
