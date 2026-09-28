@@ -22,6 +22,10 @@ module.exports = {
         sans: ['Inter', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
         display: ['Inter', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
         inter: ['Inter', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
+        /** Tall display serif for the hero headline and section titles (Google Fonts) */
+        heading: ['"Cormorant Garamond"', 'Georgia', '"Times New Roman"', 'serif'],
+        /** Script for chosen trip finder words and postcard signatures (Google Fonts) */
+        script: ['"Great Vibes"', '"Brush Script MT"', 'cursive'],
       },
       keyframes: {
         fadeIn: {

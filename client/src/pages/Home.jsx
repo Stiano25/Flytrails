@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import HomeHero from '../components/home/HomeHero.jsx';
-import JoinSection from '../components/home/JoinSection.jsx';
 import TestimonialsSection from '../components/home/TestimonialsSection.jsx';
 import PopularAdventureCard from '../components/home/PopularAdventureCard.jsx';
 import { pageHeroImages } from '../data/pageHeroImages.js';
@@ -92,7 +91,6 @@ export default function Home() {
   return (
     <>
       <HomeHero />
-      <JoinSection />
       <TestimonialsSection />
 
       {/* These are the popular ones */}

@@ -35,6 +35,9 @@ const services = [
 const inputClass = 'glass-input mt-1.5 w-full';
 const labelClass = 'text-xs font-bold uppercase tracking-wider text-brand-dark/70';
 
+/** Open-ended choices from the home trip finder (?when=next3). */
+const WHEN_TEXT = { next3: 'Within the next 3 months', next6: 'Within the next 6 months', flexible: 'Flexible dates' };
+
 /** '2026-10' -> 'October 2026' (the home trip finder passes months this way). */
 function monthLabel(value) {
   const m = /^(\d{4})-(\d{2})$/.exec(value || '');
@@ -53,13 +56,13 @@ export default function CustomTours() {
     phone: '',
     tripType: tripTypes.some((t) => t.value === searchParams.get('type')) ? searchParams.get('type') : '',
     destination: '',
-    dates: monthLabel(searchParams.get('month')),
+    dates: monthLabel(searchParams.get('month')) || WHEN_TEXT[searchParams.get('when')] || '',
     groupSize: searchParams.get('group') || '',
     budget: '',
     requests: '',
   }));
   const whatsappHref = useWhatsappLink();
-  const fromFinder = ['type', 'month', 'group', 'start'].some((k) => searchParams.has(k));
+  const fromFinder = ['type', 'month', 'when', 'group', 'start'].some((k) => searchParams.has(k));
 
   // Coming from the finder: skip past the service cards straight to the form.
   useEffect(() => {

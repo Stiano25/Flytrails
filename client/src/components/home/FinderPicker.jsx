@@ -19,9 +19,10 @@ function useIsPhone() {
 /**
  * Shell for the trip finder pickers: a bottom sheet on phones (drag handle, swipe down to close)
  * and a panel anchored to the finder bar on larger screens, with a caret pointing at the word
- * being edited. Traps focus, closes on Escape or backdrop, and locks page scroll while open.
+ * being edited. Without an `anchorRef` it opens as a centred dialog instead (used by the postcards).
+ * Traps focus, closes on Escape or backdrop, and locks page scroll while open.
  */
-export default function FinderPicker({ open, anchorRef, tokenRef, stepKey, title, subtitle, onClose, children }) {
+export default function FinderPicker({ open, anchorRef, tokenRef, stepKey, title, subtitle, onClose, width = 760, children }) {
   const phone = useIsPhone();
   const reduce = useReducedMotion();
   const panelRef = useRef(null);
@@ -32,21 +33,28 @@ export default function FinderPicker({ open, anchorRef, tokenRef, stepKey, title
   useLayoutEffect(() => {
     if (!open || phone) return undefined;
     const place = () => {
-      const bar = anchorRef.current?.getBoundingClientRect();
       const panel = panelRef.current;
-      if (!bar || !panel) return;
+      if (!panel) return;
       const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const width = Math.min(760, vw - 32);
-      const left = Math.min(Math.max(bar.left + bar.width / 2 - width / 2, 16), vw - width - 16);
+      const panelWidth = Math.min(width, vw - 32);
+      if (!anchorRef) {
+        const maxHeight = vh - 64;
+        const top = Math.max(32, (vh - Math.min(panel.scrollHeight, maxHeight)) / 2);
+        setPos({ width: panelWidth, left: (vw - panelWidth) / 2, top, maxHeight, centered: true });
+        return;
+      }
+      const bar = anchorRef.current?.getBoundingClientRect();
+      if (!bar) return;
+      const left = Math.min(Math.max(bar.left + bar.width / 2 - panelWidth / 2, 16), vw - panelWidth - 16);
       const natural = panel.scrollHeight;
       const below = vh - bar.bottom - 24;
       const above = bar.top - 24;
       const placeBelow = natural <= below || below >= above;
       const token = tokenRef.current?.getBoundingClientRect();
-      const caret = token ? Math.min(Math.max(token.left + token.width / 2 - left, 28), width - 28) : width / 2;
+      const caret = token ? Math.min(Math.max(token.left + token.width / 2 - left, 28), panelWidth - 28) : panelWidth / 2;
       setPos({
-        width,
+        width: panelWidth,
         left,
         caret,
         placeBelow,
@@ -62,7 +70,7 @@ export default function FinderPicker({ open, anchorRef, tokenRef, stepKey, title
       cancelAnimationFrame(id);
       window.removeEventListener('resize', place);
     };
-  }, [open, phone, stepKey, anchorRef, tokenRef]);
+  }, [open, phone, stepKey, anchorRef, tokenRef, width]);
 
   // Scroll lock, Escape, and a focus trap that re-reads focusable items (content changes per step).
   useEffect(() => {
@@ -106,7 +114,10 @@ export default function FinderPicker({ open, anchorRef, tokenRef, stepKey, title
     const id = requestAnimationFrame(() => {
       const body = panelRef.current?.querySelector('[data-picker-body]');
       body?.scrollTo({ top: 0 });
-      const target = body?.querySelector('[aria-pressed="true"]') || body?.querySelector('button:not([disabled])');
+      const target =
+        body?.querySelector('[aria-pressed="true"]') ||
+        body?.querySelector('button:not([disabled])') ||
+        panelRef.current?.querySelector('button[aria-label="Close"]');
       target?.focus({ preventScroll: true });
     });
     return () => cancelAnimationFrame(id);
@@ -200,14 +211,14 @@ export default function FinderPicker({ open, anchorRef, tokenRef, stepKey, title
               style={
                 pos
                   ? { left: pos.left, width: pos.width, top: pos.top, bottom: pos.bottom, maxHeight: pos.maxHeight }
-                  : { left: -9999, top: 0, width: 760, visibility: 'hidden' }
+                  : { left: -9999, top: 0, width, visibility: 'hidden' }
               }
               initial={reduce ? { opacity: 0 } : { opacity: 0, y: pos?.placeBelow === false ? 6 : -6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration }}
             >
-              {pos && (
+              {pos && !pos.centered && (
                 <motion.span
                   className={`absolute h-4 w-4 rotate-45 bg-[#fbfaf7] ${pos.placeBelow ? '-top-2' : '-bottom-2'}`}
                   animate={{ left: pos.caret - 8 }}
