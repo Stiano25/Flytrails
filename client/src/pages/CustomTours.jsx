@@ -59,7 +59,7 @@ export default function CustomTours() {
     requests: '',
   }));
   const whatsappHref = useWhatsappLink();
-  const fromFinder = searchParams.has('type') || searchParams.has('month') || searchParams.has('group');
+  const fromFinder = ['type', 'month', 'group', 'start'].some((k) => searchParams.has(k));
 
   // Coming from the finder: skip past the service cards straight to the form.
   useEffect(() => {

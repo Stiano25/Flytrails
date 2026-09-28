@@ -3,8 +3,8 @@ import TripFinder from './TripFinder.jsx';
 
 /**
  * Keep the whole hero inside one screen: if the content is taller than the hero's
- * min-height (100svh, i.e. the screen with browser toolbars showing), shrink the quote
- * step by step until it fits. Spacing already scales with screen height in CSS.
+ * min-height (100svh, i.e. the screen with browser toolbars showing), shrink the headline
+ * step by step and, if needed, drop the sub-line until it fits. Spacing already scales with screen height in CSS.
  */
 function useFitToScreen(ref) {
   useLayoutEffect(() => {
@@ -12,12 +12,22 @@ function useFitToScreen(ref) {
     if (!section) return undefined;
     let frame = 0;
     const fit = () => {
-      section.style.setProperty('--quote-scale', '1');
       const limit = parseFloat(getComputedStyle(section).minHeight) || window.innerHeight;
-      let scale = 1;
-      while (section.scrollHeight > limit + 1 && scale > 0.62) {
-        scale = Math.round((scale - 0.06) * 100) / 100;
-        section.style.setProperty('--quote-scale', String(scale));
+      const overflows = () => section.scrollHeight > limit + 1;
+      const shrink = (floor) => {
+        let scale = 1;
+        section.style.setProperty('--headline-scale', '1');
+        while (overflows() && scale > floor) {
+          scale = Math.round((scale - 0.06) * 100) / 100;
+          section.style.setProperty('--headline-scale', String(scale));
+        }
+      };
+      // First keep the sub-line and shrink the headline a little; if that is not enough, drop the sub-line.
+      delete section.dataset.compact;
+      shrink(0.8);
+      if (overflows()) {
+        section.dataset.compact = 'true';
+        shrink(0.62);
       }
     };
     const schedule = () => {
@@ -68,25 +78,16 @@ export default function HomeHero() {
         aria-hidden
       />
 
-      <div className="hero-fade mx-auto flex w-full max-w-4xl flex-col items-center justify-center px-4 pb-[clamp(0.25rem,3.5svh,2.5rem)] pt-[calc(var(--nav-h)+clamp(0.5rem,2.5svh,1.5rem))] text-center md:px-6">
-        <figure className="max-w-4xl">
-          <blockquote
-            className="font-serif text-[calc(clamp(1.625rem,min(7vw,6.2svh),4.25rem)*var(--quote-scale,1))] font-normal leading-[1.1] tracking-[-0.01em] text-white text-balance [text-shadow:0_2px_24px_rgba(13,27,42,0.35)]"
-          >
-            <p>
-              &ldquo;There is a kind of magicness about going far away and then coming back all changed.&rdquo;
-            </p>
-          </blockquote>
-          <figcaption className="mt-[clamp(0.5rem,2svh,1.25rem)] font-sans text-xs font-medium uppercase tracking-[0.2em] text-accent md:text-sm">
-            Kate Douglas Wiggin
-          </figcaption>
-        </figure>
+      <div className="hero-fade mx-auto flex w-full max-w-5xl flex-col items-center justify-center px-4 pb-[clamp(0.25rem,3.5svh,2.5rem)] pt-[calc(var(--nav-h)+clamp(0.5rem,2.5svh,1.5rem))] text-center md:px-6">
         <h1
           id="home-hero-title"
-          className="mt-[clamp(0.5rem,2.2svh,1.5rem)] max-w-xl font-sans text-base font-light leading-snug text-white/90 sm:text-lg md:text-xl"
+          className="font-inter text-[calc(clamp(2.125rem,min(8.4vw,7.2svh),4.75rem)*var(--headline-scale,1))] font-bold leading-[1.04] tracking-[-0.03em] text-white text-balance [text-shadow:0_2px_24px_rgba(13,27,42,0.35)]"
         >
-          Tailor-made trips and group adventures, planned with care.
+          Adventures planned properly, memories guaranteed.
         </h1>
+        <p className="hero-sub mt-[clamp(0.5rem,2svh,1.25rem)] max-w-xl font-inter text-base font-normal leading-snug text-white/85 sm:text-lg">
+          Tailor-made trips and group adventures, planned with care.
+        </p>
         <TripFinder />
       </div>
     </section>
