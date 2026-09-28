@@ -4,7 +4,7 @@ import { CircleCheck, Luggage, PenLine, Star } from 'lucide-react';
 import { useSubmit } from '../hooks/useApi.js';
 import { api } from '../data/api.js';
 import { useStories } from '../components/postcards/stories.js';
-import Postcard, { PostcardFull, Stars, StoriesBackdrop, StoryFilters } from '../components/postcards/Postcard.jsx';
+import Postcard, { PostcardFull, Stars, StoryFilters } from '../components/postcards/Postcard.jsx';
 import FinderPicker from '../components/home/FinderPicker.jsx';
 
 const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
@@ -187,7 +187,7 @@ function ShareStoryForm({ onDone }) {
 }
 
 export default function Reviews() {
-  const { stories, filters, average, ratedCount, distribution, loading } = useStories();
+  const { stories, filters, average, ratedCount, loading } = useStories();
   const [filter, setFilter] = useState('all');
   const [openStory, setOpenStory] = useState(null);
   const [sharing, setSharing] = useState(false);
@@ -209,64 +209,41 @@ export default function Reviews() {
     requestAnimationFrame(() => lastOpener.current?.focus({ preventScroll: true }));
   }
 
-  const maxBar = Math.max(1, ...distribution.map((d) => d.count));
 
   return (
     <div>
-      <section className="relative isolate overflow-hidden text-white">
-        <StoriesBackdrop />
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:px-6 md:py-20 lg:grid-cols-[1fr_22rem] lg:items-center">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">Reviews</p>
-            <h1 className="mt-3 font-headline text-5xl font-semibold tracking-tight md:text-7xl">Stories from the trail</h1>
-            <p className="mt-4 max-w-xl text-[17px] leading-relaxed text-white/75">
-              Real postcards from people who travelled with us. Read a few, then start your own.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <button
-                type="button"
-                onClick={() => openDialog(setSharing, true)}
-                className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-accent px-6 text-[15px] font-semibold text-brand-dark transition-colors duration-150 hover:bg-[#e0bb82] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                <PenLine className="h-4 w-4" aria-hidden />
-                Share your story
-              </button>
-              <Link
-                to="/?plan=1"
-                className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-white/35 bg-white/[0.06] px-6 text-[15px] font-medium text-white transition-colors duration-150 hover:bg-white/15 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                <Luggage className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-                Plan my trip
-              </Link>
-            </div>
+      {/* Compact bar: people chose to read reviews, so get straight to them. */}
+      <section className="border-b border-brand-dark/10 bg-[#f4efe4]">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-5 sm:flex-row sm:items-center sm:justify-between md:px-6">
+          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight text-brand-dark">Reviews</h1>
+            {ratedCount > 0 && (
+              <p className="flex items-center gap-2 text-sm text-brand-dark/70">
+                <Stars value={Math.round(average)} className="h-3.5 w-3.5" />
+                <span>
+                  <strong className="font-semibold text-brand-dark">{average.toFixed(1)}</strong> · {ratedCount} reviews
+                </span>
+              </p>
+            )}
           </div>
-
-          {ratedCount > 0 && (
-            <div className="glass-panel rounded-3xl p-6">
-              <div className="flex items-end gap-3">
-                <span className="font-headline text-6xl font-semibold leading-none">{average.toFixed(1)}</span>
-                <div className="pb-1">
-                  <Stars value={Math.round(average)} className="h-4 w-4" />
-                  <p className="mt-1 text-sm text-white/65">from {ratedCount} reviews</p>
-                </div>
-              </div>
-              <ul className="mt-5 space-y-2" aria-label="Ratings breakdown">
-                {distribution.map((d) => (
-                  <li key={d.stars} className="flex items-center gap-3 text-sm">
-                    <span className="w-7 tabular-nums text-white/70">{d.stars}★</span>
-                    <span className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-white/10" aria-hidden>
-                      <span className="absolute inset-y-0 left-0 rounded-full bg-accent" style={{ width: `${(d.count / maxBar) * 100}%` }} />
-                    </span>
-                    <span className="w-6 text-right tabular-nums text-white/70">{d.count}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+            <Link to="/?plan=1" className={`inline-flex items-center gap-1.5 text-sm font-medium text-brand-dark/75 underline-offset-4 hover:text-brand-dark hover:underline ${ring}`}>
+              <Luggage className="h-4 w-4" strokeWidth={1.75} aria-hidden />
+              Plan my trip
+            </Link>
+            <button
+              type="button"
+              onClick={() => openDialog(setSharing, true)}
+              className={`inline-flex min-h-[44px] items-center gap-2 rounded-full bg-brand-orange px-5 text-sm font-semibold text-brand-dark transition-colors duration-150 hover:bg-[#f4a53f] active:scale-[0.98] ${ring}`}
+            >
+              <PenLine className="h-4 w-4" aria-hidden />
+              Share your story
+            </button>
+          </div>
         </div>
       </section>
 
-      <section className="bg-[#f4efe4] py-12 md:py-16">
+      <section className="bg-[#f4efe4] pb-16 pt-6 md:pb-20">
         <div className="mx-auto max-w-6xl px-4 md:px-6">
           {filters.length > 1 && <StoryFilters filters={filters} total={stories.length} value={filter} onChange={setFilter} />}
 
@@ -293,7 +270,7 @@ export default function Reviews() {
             <>
               {featured && (
                 <div className="mt-8">
-                  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#8a6326]">Featured story</p>
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-brand-dark/50">Featured story</p>
                   <Postcard
                     story={featured}
                     lines={10}

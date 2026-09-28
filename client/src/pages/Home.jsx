@@ -4,7 +4,9 @@ import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import HomeHero from '../components/home/HomeHero.jsx';
 import TestimonialsSection from '../components/home/TestimonialsSection.jsx';
-import PopularAdventureCard from '../components/home/PopularAdventureCard.jsx';
+import TripsShowcase from '../components/home/TripsShowcase.jsx';
+import StaysPreview from '../components/home/StaysPreview.jsx';
+import AlbumsTeaser from '../components/home/AlbumsTeaser.jsx';
 import { pageHeroImages } from '../data/pageHeroImages.js';
 import { useSubmit, useTrips, useGalleryImages, useAccommodations, useFaqs } from '../hooks/useApi.js';
 import { api } from '../data/api.js';
@@ -69,9 +71,6 @@ export default function Home() {
   const { data: galleryData } = useGalleryImages();
   const { data: accommodationsData } = useAccommodations();
   const { data: faqsData } = useFaqs();
-  const popular = (tripsData || []).slice(0, 6);
-  const moments = (galleryData || []).slice(0, 9);
-  const featuredAccommodations = (accommodationsData || []).slice(0, 3);
   const homeFaqs = (faqsData || []).slice(0, 8);
 
   const handleNewsletterSubmit = async (e) => {
@@ -93,221 +92,11 @@ export default function Home() {
       <HomeHero />
       <TestimonialsSection />
 
-      {/* These are the popular ones */}
-      <section className="relative py-20 md:py-28 overflow-hidden">
-        {/* Glassmorphic background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-transparent to-primary/10" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(255,255,255,0.3),transparent_40%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_70%,rgba(27,67,50,0.1),transparent_40%)]" />
-        
-        <div className="relative mx-auto max-w-7xl px-4 md:px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.8 }}
-            className="mb-12 text-center md:mb-14"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="mb-5 inline-block rounded-2xl border border-white/30 bg-white/20 px-5 py-2.5 backdrop-blur-md"
-            >
-              <span className="text-sm font-semibold uppercase tracking-wider text-primary">Featured</span>
-            </motion.div>
-            
-            <h2 className="font-display text-3xl font-bold text-brand-dark md:text-4xl lg:text-5xl">
-              These are the popular ones
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-base text-brand-dark/70 md:text-lg">
-              Handpicked experiences that our travelers love most — join the adventure
-            </p>
-          </motion.div>
-          
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-            {popular.map((trip, index) => (
-              <PopularAdventureCard key={trip.id} trip={trip} index={index} />
-            ))}
-          </div>
-          
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ delay: 0.8, duration: 0.6 }}
-            className="mt-16 flex flex-col items-center justify-center gap-6 sm:flex-row"
-          >
-            <Link
-              to="/trips"
-              className="group inline-flex items-center gap-3 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 px-8 py-4 text-base font-semibold text-primary shadow-2xl transition-all duration-300 hover:bg-white/30 hover:scale-105"
-            >
-              <span>View all destinations</span>
-              <motion.svg 
-                className="h-5 w-5" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-                whileHover={{ x: 5 }}
-                transition={{ duration: 0.2 }}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </motion.svg>
-            </Link>
-            <Link
-              to="/custom-tours"
-              className="group inline-flex items-center gap-3 rounded-2xl bg-primary/90 backdrop-blur-md border border-primary/30 px-8 py-4 text-base font-semibold text-white shadow-2xl transition-all duration-300 hover:bg-primary hover:scale-105 hover:shadow-primary/25"
-            >
-              <span>Request custom trip</span>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
+      <TripsShowcase trips={tripsData} />
 
-      {/* Accommodations preview */}
-      <section className="bg-white py-12 sm:py-16 md:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-5 md:px-6">
-          <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
-            <div className="min-w-0">
-              <h2 className="font-display text-2xl font-bold text-brand-dark sm:text-3xl md:text-4xl">Accommodations</h2>
-              <p className="mt-2 max-w-xl text-sm text-brand-dark/70 sm:text-base">Handpicked stays to match your travel style.</p>
-            </div>
-            <Link
-              to="/accommodations"
-              className="inline-flex shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary transition hover:bg-primary/10 sm:py-2"
-            >
-              View all stays
-            </Link>
-          </div>
-          {featuredAccommodations.length === 0 ? (
-            <p className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5 text-sm text-brand-dark/60 sm:p-6">
-              Accommodations will appear here once added by admin.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
-              {featuredAccommodations.map((item) => (
-                <Link
-                  key={item.id}
-                  to={`/accommodations/${item.slug}`}
-                  className="group block overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition hover:border-primary/20 hover:shadow-md"
-                >
-                  {item.image && (
-                    <div className="aspect-[4/3] w-full overflow-hidden bg-neutral-100">
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-                        loading="lazy"
-                      />
-                    </div>
-                  )}
-                  <div className="p-4 sm:p-5">
-                    <h3 className="line-clamp-2 font-semibold leading-snug text-brand-dark group-hover:text-primary">{item.title}</h3>
-                    <p className="mt-1 text-sm text-brand-dark/70">{item.location}</p>
-                    <p className="mt-2 line-clamp-2 text-sm text-brand-dark/75">{item.shortDescription || item.description}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      <StaysPreview stays={accommodationsData} />
 
-      {/* Moments — gallery strip */}
-      <section className="relative py-20 md:py-28 overflow-hidden">
-        {/* Glassmorphic background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-white/30" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_60%_40%,rgba(212,169,106,0.15),transparent_50%)]" />
-        
-        <div className="relative mx-auto max-w-7xl px-4 md:px-6">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.8 }}
-            className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end mb-12"
-          >
-            <div>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2, duration: 0.6 }}
-                className="inline-block rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 px-6 py-3 mb-6"
-              >
-                <span className="text-sm font-semibold uppercase tracking-wider text-accent">Gallery</span>
-              </motion.div>
-              
-              <h2 className="font-display text-4xl font-bold text-brand-dark md:text-5xl">
-                Moments worth sharing
-              </h2>
-              <p className="mt-4 text-lg text-brand-dark/70">
-                Real adventures, real memories from travelers like you
-              </p>
-            </div>
-            
-            <Link
-              to="/gallery"
-              className="group inline-flex items-center gap-2 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 px-6 py-3 text-sm font-semibold text-primary transition-all duration-300 hover:bg-white/30 hover:scale-105"
-            >
-              <span>View full gallery</span>
-              <motion.svg 
-                className="h-4 w-4" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-                whileHover={{ x: 3 }}
-                transition={{ duration: 0.2 }}
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </motion.svg>
-            </Link>
-          </motion.div>
-          
-          <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3">
-            {moments.map((g, index) => (
-              <motion.div
-                key={g.id}
-                initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ 
-                  delay: index * 0.1, 
-                  duration: 0.6,
-                  type: "spring",
-                  stiffness: 100
-                }}
-                whileHover={{ 
-                  scale: 1.05, 
-                  y: -5,
-                  transition: { duration: 0.3 }
-                }}
-                className="group relative overflow-hidden rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl"
-              >
-                <div className="aspect-[4/3]">
-                  <img
-                    src={g.url}
-                    alt={g.location}
-                    width="400"
-                    height="300"
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
-                <div className="absolute bottom-4 left-4 right-4">
-                  <p className="text-sm font-semibold text-white drop-shadow-lg">{g.location}</p>
-                </div>
-                
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <AlbumsTeaser images={galleryData} />
 
       {/* Home FAQs */}
       <section className="bg-white py-16 md:py-20">

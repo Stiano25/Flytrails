@@ -107,7 +107,7 @@ function onGridKeyDown(e) {
 
 /**
  * A tappable blank in the sentence, shown as a pill that never breaks across lines:
- * dashed and muted until chosen, then solid, larger and in brand green.
+ * dashed orange outline until chosen, then solid brand orange and slightly larger.
  */
 function Token({ tokenRef, filled, onClick, children, label }) {
   return (
@@ -119,8 +119,8 @@ function Token({ tokenRef, filled, onClick, children, label }) {
       aria-label={label}
       className={`group/token mx-0.5 inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-3 py-0.5 align-middle leading-snug transition-colors duration-150 active:scale-[0.97] ${ring} ${
         filled
-          ? 'border-primary/30 bg-primary/[0.07] text-[1.08em] font-semibold text-primary hover:border-primary/55 hover:bg-primary/[0.12]'
-          : 'border-dashed border-brand-dark/30 font-medium text-brand-dark/60 hover:border-brand-dark/55 hover:bg-brand-dark/[0.04] hover:text-brand-dark/80'
+          ? 'border-brand-orange bg-brand-orange text-[1.08em] font-semibold text-brand-dark shadow-sm hover:border-[#f4a53f] hover:bg-[#f4a53f]'
+          : 'border-dashed border-brand-orange/70 font-medium text-brand-dark/65 hover:bg-brand-orange/10 hover:text-brand-dark'
       }`}
     >
       {children}
@@ -461,7 +461,7 @@ export default function TripFinder() {
   };
 
   return (
-    <div className="mt-[clamp(1rem,3.5svh,2.5rem)] w-full max-w-4xl font-inter">
+    <div className="mt-[clamp(1rem,3.5svh,2.5rem)] w-full max-w-4xl font-sans">
       <form
         ref={barRef}
         onSubmit={submit}
