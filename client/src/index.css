@@ -3,14 +3,6 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'Beauty Mountains';
-  src: url('./fonts/BeautyMountainsPersonalUse-od7z.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
   font-family: 'Inter';
   src: url('/fonts/inter-latin.woff2') format('woff2');
   font-weight: 100 900;
@@ -196,13 +188,38 @@ html {
   }
 }
 
-/* Testimonial postcards: warm paper, and a stamp with perforated edges (holes show the card behind). */
-.postcard-paper {
-  background-color: #fdf9f0;
-  background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.7), rgba(242, 231, 208, 0.35));
+/* Postcards (home stories + reviews page): matte porcelain cards with a gold hairline, perforated stamps,
+   embossed postmarks, and a blurred palm-photo backdrop. */
+.porcelain {
+  position: relative;
+  background: linear-gradient(160deg, #fdfcf9 0%, #f6f2ea 60%, #f0eadf 100%);
+  border: 1px solid rgba(212, 169, 106, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 1px 2px rgba(13, 27, 42, 0.1),
+    0 12px 24px -12px rgba(13, 27, 42, 0.25),
+    0 40px 80px -40px rgba(13, 27, 42, 0.55);
+}
+
+.postmark {
+  border: 1px solid rgba(27, 67, 50, 0.28);
+  box-shadow:
+    inset 0 1px 1px rgba(13, 27, 42, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.95),
+    0 0 0 4px rgba(255, 255, 255, 0.35),
+    0 0 0 5px rgba(27, 67, 50, 0.14);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .postcard-stamp {
   padding: 6px;
   background: radial-gradient(circle at 5px 5px, transparent 2.6px, #ffffff 3px) -5px -5px / 10px 10px;
+  filter: drop-shadow(0 2px 3px rgba(13, 27, 42, 0.18));
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }

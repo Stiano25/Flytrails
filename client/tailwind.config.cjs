@@ -17,15 +17,12 @@ module.exports = {
         'brand-bg': '#F8F5F0',
       },
       fontFamily: {
-        beauty: ['"Beauty Mountains"', 'cursive'],
         /** Site typeface: Inter, self-hosted variable font in /public/fonts (Helvetica stack as fallback). */
         sans: ['Inter', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
         display: ['Inter', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
         inter: ['Inter', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
-        /** Tall display serif for the hero headline and section titles (Google Fonts) */
-        heading: ['"Cormorant Garamond"', 'Georgia', '"Times New Roman"', 'serif'],
-        /** Script for chosen trip finder words and postcard signatures (Google Fonts) */
-        script: ['"Great Vibes"', '"Brush Script MT"', 'cursive'],
+        /** Headline face: tall condensed Oswald for the hero word and section titles */
+        headline: ['Oswald', '"Arial Narrow"', '"Helvetica Neue"', 'Arial', 'sans-serif'],
       },
       keyframes: {
         fadeIn: {

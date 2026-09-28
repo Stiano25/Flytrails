@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useReducedMotion } from 'framer-motion';
 import {
   Binoculars,
@@ -105,7 +105,10 @@ function onGridKeyDown(e) {
   }
 }
 
-/** A tappable blank in the sentence. Chosen values are set in script; placeholders stay plain. */
+/**
+ * A tappable blank in the sentence, shown as a pill that never breaks across lines:
+ * dashed and muted until chosen, then solid, larger and in brand green.
+ */
 function Token({ tokenRef, filled, onClick, children, label }) {
   return (
     <button
@@ -114,15 +117,15 @@ function Token({ tokenRef, filled, onClick, children, label }) {
       onClick={onClick}
       aria-haspopup="dialog"
       aria-label={label}
-      className={`group/token mx-0.5 inline-flex items-baseline gap-1 rounded-lg px-1.5 py-0.5 underline decoration-2 transition-colors duration-150 hover:bg-accent/15 active:scale-[0.98] ${ring} ${
+      className={`group/token mx-0.5 inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-3 py-0.5 align-middle leading-snug transition-colors duration-150 active:scale-[0.97] ${ring} ${
         filled
-          ? 'font-script text-[1.6em] font-normal leading-[0.9] text-primary decoration-accent underline-offset-[5px]'
-          : 'font-semibold text-brand-dark/55 decoration-brand-dark/25 decoration-dashed underline-offset-[6px]'
+          ? 'border-primary/30 bg-primary/[0.07] text-[1.08em] font-semibold text-primary hover:border-primary/55 hover:bg-primary/[0.12]'
+          : 'border-dashed border-brand-dark/30 font-medium text-brand-dark/60 hover:border-brand-dark/55 hover:bg-brand-dark/[0.04] hover:text-brand-dark/80'
       }`}
     >
       {children}
       <ChevronDown
-        className="h-4 w-4 translate-y-0.5 self-center font-sans opacity-70 transition-transform duration-150 group-hover/token:translate-y-1"
+        className="h-4 w-4 shrink-0 opacity-70 transition-transform duration-150 group-hover/token:translate-y-0.5"
         strokeWidth={2.5}
         aria-hidden
       />
@@ -132,6 +135,7 @@ function Token({ tokenRef, filled, onClick, children, label }) {
 
 export default function TripFinder() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const reduce = useReducedMotion();
   const months = useMemo(upcomingMonths, []);
   const [plan, setPlan] = useState({ type: '', when: '', group: 2 });
@@ -164,6 +168,40 @@ export default function TripFinder() {
     },
     [reduce, tokenRefs]
   );
+
+  // Links elsewhere on the site point to /?plan=1 (optionally &type=safari, e.g. "Plan a trip like this" on a postcard):
+  // glide back to the finder, pre-select the trip type if given, then open the next question.
+  useEffect(() => {
+    if (searchParams.get('plan') !== '1') return undefined;
+    const linkedType = findTripType(searchParams.get('type'))?.value;
+    setSearchParams({}, { replace: true });
+    const next = linkedType ? 'when' : 'type';
+    if (linkedType) {
+      setPlan((p) => ({ ...p, type: linkedType }));
+      setAnswered((a) => ({ ...a, type: true }));
+      trackFinder('choose:type', { type: linkedType, from: 'link' });
+    }
+    const openNext = () => {
+      lastToken.current = next;
+      setActive(next);
+      trackFinder(`open:${next}`, { from: 'link' });
+    };
+    if (reduce || window.scrollY < 4) {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      openNext();
+      return undefined;
+    }
+    // Open the picker once the scroll has arrived (it locks page scroll while open). Not cancelled on
+    // re-render on purpose: clearing the query string above re-runs this effect straight away.
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const started = performance.now();
+    const wait = () => {
+      if (window.scrollY < 4 || performance.now() - started > 1200) openNext();
+      else requestAnimationFrame(wait);
+    };
+    requestAnimationFrame(wait);
+    return undefined;
+  }, [searchParams, setSearchParams, reduce]);
 
   /** Progressive disclosure: after a choice, open the next unanswered question; otherwise close. */
   const choose = (step, patch) => {
@@ -430,7 +468,7 @@ export default function TripFinder() {
         aria-label="Plan a trip"
         className="flex flex-col gap-3 rounded-3xl bg-white/95 p-4 text-brand-dark shadow-[0_18px_50px_-12px_rgba(13,27,42,0.55)] backdrop-blur sm:flex-row sm:items-center sm:gap-4 sm:rounded-full sm:py-2.5 sm:pl-7 sm:pr-2.5"
       >
-        <p className="text-balance text-center text-[17px] leading-[1.9] text-brand-dark/80 sm:flex-1 sm:text-left sm:text-lg sm:leading-[1.7]">
+        <p className="text-balance text-center text-[17px] leading-[2.3] text-brand-dark/80 sm:flex-1 sm:text-left sm:text-lg sm:leading-[2.1]">
           I’d like {article}{' '}
           <Token
             tokenRef={typeRef}
