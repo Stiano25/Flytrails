@@ -15,7 +15,7 @@ function useFitToScreen(ref) {
       const limit = parseFloat(getComputedStyle(section).minHeight) || window.innerHeight;
       let scale = 1;
       section.style.setProperty('--headline-scale', '1');
-      while (section.scrollHeight > limit && scale > 0.62) {
+      while (section.scrollHeight > limit && scale > 0.5) {
         scale = Math.round((scale - 0.06) * 100) / 100;
         section.style.setProperty('--headline-scale', String(scale));
       }
@@ -69,12 +69,12 @@ export default function HomeHero() {
       />
 
       <div className="hero-fade mx-auto flex w-full max-w-5xl flex-col items-center justify-center px-4 pb-[clamp(0.25rem,3.5svh,2.5rem)] pt-[calc(var(--nav-h)+clamp(0.5rem,2.5svh,1.5rem))] text-center md:px-6">
-        <h1 id="home-hero-title" className="font-heading text-white text-balance [text-shadow:0_2px_24px_rgba(13,27,42,0.35)]">
-          <span className="block text-[calc(clamp(2.75rem,min(10.5vw,9svh),6.75rem)*var(--headline-scale,1))] font-semibold leading-[0.98] tracking-[-0.01em]">
-            Adventures planned properly,
+        <h1 id="home-hero-title" className="font-inter text-white text-balance [text-shadow:0_2px_24px_rgba(13,27,42,0.35)]">
+          <span className="block font-headline text-[calc(clamp(4rem,min(21vw,15svh),10rem)*var(--headline-scale,1))] font-semibold leading-[0.95] tracking-[-0.01em]">
+            Adventures
           </span>
-          <span className="mt-[0.2em] block text-[calc(clamp(1.75rem,min(6.4vw,5.4svh),3.75rem)*var(--headline-scale,1))] font-normal leading-[1.05]">
-            memories guaranteed.
+          <span className="mt-[0.35em] block text-[calc(clamp(1.3rem,min(5.4vw,4.4svh),2.5rem)*var(--headline-scale,1))] font-normal leading-tight tracking-[-0.01em] text-white/90">
+            planned properly, memories guaranteed.
           </span>
         </h1>
         <TripFinder />
