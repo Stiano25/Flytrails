@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useReducedMotion } from 'framer-motion';
 import {
   Binoculars,
@@ -25,6 +25,8 @@ import {
 import { findTripType, tripTypes } from '../../data/tripTypes.js';
 import { BEST_MONTHS, SEASONS, seasonFor } from '../../data/seasons.js';
 import { trackFinder } from '../../lib/trackFinder.js';
+import { useWhatsappLink } from '../../hooks/useWhatsappLink.js';
+import { openWhatsapp } from '../../lib/whatsapp.js';
 import FinderPicker from './FinderPicker.jsx';
 
 const TYPE_ICONS = {
@@ -88,6 +90,18 @@ const monthLong = (value) => {
 const groupText = (n) => (n >= MAX_GROUP ? `${MAX_GROUP}+` : String(n));
 const isMonth = (when) => /^\d{4}-\d{2}$/.test(when);
 
+/**
+ * "Hi Flytrails! I'd like to plan a safari trip in December 2026 for 2 people. Could you share options and prices?"
+ * Parts that weren't chosen are left out.
+ */
+function whatsappMessage({ type, month, flexible, group }) {
+  let wish = type ? `plan ${/^[aeiou]/i.test(type) ? 'an' : 'a'} ${type} trip` : 'plan a trip';
+  if (month) wish += ` in ${month}`;
+  else if (flexible) wish += ` ${flexible.prefix}${flexible.token}`;
+  if (group) wish += ` for ${group === 1 ? '1 person' : `${groupText(group)} people`}`;
+  return `Hi Flytrails! I'd like to ${wish}. Could you share options and prices?`;
+}
+
 /** Arrow keys move between options in a grid (reads the live column count, so it works at every breakpoint). */
 function onGridKeyDown(e) {
   const delta = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: 'up', ArrowDown: 'down' }[e.key];
@@ -134,7 +148,7 @@ function Token({ tokenRef, filled, onClick, children, label }) {
 }
 
 export default function TripFinder() {
-  const navigate = useNavigate();
+  const whatsappHref = useWhatsappLink();
   const [searchParams, setSearchParams] = useSearchParams();
   const reduce = useReducedMotion();
   const months = useMemo(upcomingMonths, []);
@@ -239,8 +253,17 @@ export default function TripFinder() {
     if (answered.when && isMonth(plan.when)) params.set('month', plan.when);
     if (answered.when && flexible) params.set('when', flexible.value);
     if (answered.who) params.set('group', groupText(plan.group));
-    trackFinder('submit', Object.fromEntries(params));
-    navigate(`/custom-tours?${params.toString() || 'start=1'}#inquiry`);
+    trackFinder('submit', { ...Object.fromEntries(params), to: 'whatsapp' });
+    const [year, month] = answered.when && isMonth(plan.when) ? plan.when.split('-').map(Number) : [];
+    openWhatsapp(
+      whatsappHref,
+      whatsappMessage({
+        type: answered.type && type ? TYPE_WORD[type.value] : '',
+        month: year ? new Date(year, month - 1, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) : '',
+        flexible: answered.when ? flexible : null,
+        group: answered.who ? plan.group : 0,
+      })
+    );
   }
 
   const article = answered.type && type ? (/^[aeiou]/i.test(TYPE_WORD[type.value]) ? 'an' : 'a') : '';
