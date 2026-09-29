@@ -58,7 +58,7 @@ export default function Footer() {
         <div className="flex flex-col items-start gap-5 border-b border-white/10 py-10 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <img src="/images/flytrailsnewlogo.png" alt="Flytrails" className="h-9 w-auto brightness-0 invert" />
-            <p className="mt-3 text-[15px] italic text-white/70">{content?.site_tagline || 'Explore. Connect. Experience.'}</p>
+            <p className="mt-3 text-[15px] italic text-white/70">Curated African Journeys</p>
           </div>
         </div>
 
