@@ -4,9 +4,10 @@ import { CircleCheck, Luggage, PenLine, Star } from 'lucide-react';
 import { useSubmit } from '../hooks/useApi.js';
 import { api } from '../data/api.js';
 import { useStories } from '../components/postcards/stories.js';
-import Postcard, { PostcardFull, Stars, StoryFilters } from '../components/postcards/Postcard.jsx';
+import Postcard, { HIKERS_PHOTO, PostcardFull, Stars, StoriesBackdrop, StoryFilters } from '../components/postcards/Postcard.jsx';
 import FinderPicker from '../components/home/FinderPicker.jsx';
 
+const ringLight = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
 const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
 const fieldClass =
   'mt-1.5 w-full rounded-xl border border-brand-dark/15 bg-white px-3.5 py-3 text-[15px] text-brand-dark transition placeholder:text-brand-dark/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25';
@@ -212,29 +213,32 @@ export default function Reviews() {
 
   return (
     <div>
-      {/* Compact bar: people chose to read reviews, so get straight to them. */}
-      <section className="border-b border-brand-dark/10 bg-[#f4efe4]">
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-5 sm:flex-row sm:items-center sm:justify-between md:px-6">
-          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight text-brand-dark">Reviews</h1>
+      {/* Short photo header (hikers resting on the trail): people chose to read reviews, so get straight to them. */}
+      <section className="relative isolate overflow-hidden text-white">
+        <StoriesBackdrop photo={HIKERS_PHOTO} position="50% 55%" />
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 pb-9 pt-10 text-center md:px-6 md:pb-12 md:pt-14">
+          <div className="flex flex-col items-center gap-2">
+            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
+              Stories from the <span className="font-light italic">trail</span>
+            </h1>
             {ratedCount > 0 && (
-              <p className="flex items-center gap-2 text-sm text-brand-dark/70">
+              <p className="flex items-center gap-2 text-sm text-white/80">
                 <Stars value={Math.round(average)} className="h-3.5 w-3.5" />
                 <span>
-                  <strong className="font-semibold text-brand-dark">{average.toFixed(1)}</strong> · {ratedCount} reviews
+                  <strong className="font-semibold text-white">{average.toFixed(1)}</strong> · {ratedCount} reviews
                 </span>
               </p>
             )}
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/?plan=1" className={`inline-flex items-center gap-1.5 text-sm font-medium text-brand-dark/75 underline-offset-4 hover:text-brand-dark hover:underline ${ring}`}>
+            <Link to="/?plan=1" className={`inline-flex items-center gap-1.5 text-sm font-medium text-white/85 underline-offset-4 hover:text-white hover:underline ${ringLight}`}>
               <Luggage className="h-4 w-4" strokeWidth={1.75} aria-hidden />
               Plan my trip
             </Link>
             <button
               type="button"
               onClick={() => openDialog(setSharing, true)}
-              className={`inline-flex min-h-[44px] items-center gap-2 rounded-full bg-brand-orange px-5 text-sm font-semibold text-brand-dark transition-colors duration-150 hover:bg-[#f4a53f] active:scale-[0.98] ${ring}`}
+              className={`inline-flex min-h-[44px] items-center gap-2 rounded-full bg-brand-orange px-5 text-sm font-semibold text-brand-dark transition-colors duration-150 hover:bg-[#f4a53f] active:scale-[0.98] ${ringLight}`}
             >
               <PenLine className="h-4 w-4" aria-hidden />
               Share your story

@@ -34,6 +34,8 @@ function useFitToScreen(ref) {
   }, [ref]);
 }
 
+const FALLBACK_HERO = '/images/hero-palm-coast.jpg';
+
 export default function HomeHero() {
   const ref = useRef(null);
   useFitToScreen(ref);
@@ -44,12 +46,17 @@ export default function HomeHero() {
       className="home-hero relative isolate flex overflow-hidden bg-brand-dark"
       aria-labelledby="home-hero-title"
     >
+      {/* Hot-air balloons at dawn. Framed so the glowing envelope sits behind the centred copy on phones.
+          Falls back to the palm coast photo if the balloon image is missing. */}
       <img
-        src="/images/hero-palm-coast.jpg"
+        src="/images/hero-balloons.jpg"
+        onError={(e) => {
+          if (!e.currentTarget.src.endsWith(FALLBACK_HERO)) e.currentTarget.src = FALLBACK_HERO;
+        }}
         alt=""
-        width="1332"
-        height="749"
-        className="absolute inset-0 -z-10 h-full w-full object-cover object-[60%_60%]"
+        width="2400"
+        height="1600"
+        className="absolute inset-0 -z-10 h-full w-full object-cover object-[50%_40%] md:object-center"
         decoding="async"
         fetchpriority="high"
       />
@@ -69,7 +76,10 @@ export default function HomeHero() {
       />
 
       <div className="hero-fade mx-auto flex w-full max-w-5xl flex-col items-center justify-center px-4 pb-[clamp(0.25rem,3.5svh,2.5rem)] pt-[calc(var(--nav-h)+clamp(0.5rem,2.5svh,1.5rem))] text-center md:px-6">
-        <h1 id="home-hero-title" className="font-sans text-white text-balance [text-shadow:0_2px_24px_rgba(13,27,42,0.35)]">
+        <p className="text-[calc(clamp(0.7rem,min(2.8vw,1.9svh),0.95rem)*var(--headline-scale,1))] font-medium uppercase tracking-[0.35em] text-white/85 [text-shadow:0_1px_12px_rgba(13,27,42,0.5)]">
+          Curated African Journeys
+        </p>
+        <h1 id="home-hero-title" className="mt-[clamp(0.25rem,1svh,0.75rem)] font-sans text-white text-balance [text-shadow:0_2px_24px_rgba(13,27,42,0.35)]">
           <span className="block font-script text-[calc(clamp(5rem,min(24vw,17svh),11.5rem)*var(--headline-scale,1))] font-normal leading-[1.05]">
             Adventures
           </span>

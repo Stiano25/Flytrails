@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Luggage, Quote, Star } from 'lucide-react';
 
@@ -180,11 +181,33 @@ export function StoryFilters({ filters, total, value, onChange, tone = 'light', 
 }
 
 /** Section background: a blurred slice of the hero's palm-coast photo under a deep tint. */
-export function StoriesBackdrop() {
+const PALM_COAST = '/images/hero-palm-coast.jpg';
+export const HIKERS_PHOTO = '/images/stories-hikers.jpg';
+
+/**
+ * Dark photo backdrop for white text. Default: a blurred slice of the palm coast. With `photo`
+ * (e.g. the hikers resting on the trail) the picture stays sharp under a heavier gradient so text stays AA;
+ * if that photo is missing it falls back to the blurred default.
+ */
+export function StoriesBackdrop({ photo, position = '50% 50%' }) {
+  const [failed, setFailed] = useState(false);
+  const sharp = photo && !failed;
   return (
     <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden>
-      <img src="/images/hero-palm-coast.jpg" alt="" className="h-full w-full scale-110 object-cover object-[50%_65%] blur-2xl" />
-      <div className="absolute inset-0 bg-gradient-to-b from-brand-dark/85 via-brand-dark/75 to-brand-dark/90" />
+      <img
+        src={sharp ? photo : PALM_COAST}
+        onError={() => setFailed(true)}
+        alt=""
+        decoding="async"
+        loading="lazy"
+        style={sharp ? { objectPosition: position } : undefined}
+        className={sharp ? 'h-full w-full object-cover' : 'h-full w-full scale-110 object-cover object-[50%_65%] blur-2xl'}
+      />
+      <div
+        className={`absolute inset-0 bg-gradient-to-b ${
+          sharp ? 'from-brand-dark/85 via-brand-dark/70 to-brand-dark/90' : 'from-brand-dark/85 via-brand-dark/75 to-brand-dark/90'
+        }`}
+      />
     </div>
   );
 }

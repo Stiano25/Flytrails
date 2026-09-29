@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 
 export default function SEOHead({ 
-  title = 'Flytrails - Adventure Travel in Kenya & East Africa',
-  description = 'Discover authentic adventures across Kenya and East Africa with Flytrails. Small groups, expert guides, and unforgettable experiences from hiking to safari.',
+  title = 'Flytrails | Curated African Journeys',
+  description = 'Curated African journeys with Flytrails: adventures across Kenya and East Africa. Small groups, expert guides, and unforgettable experiences from hiking to safari.',
   image = '/images/hero-default.jpg',
   url = window.location.href
 }) {
