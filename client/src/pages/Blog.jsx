@@ -1,135 +1,114 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Calendar, Clock, ArrowRight, Sparkles } from 'lucide-react';
-import BlogShareBar from '../components/BlogShareBar.jsx';
+import { ArrowRight, Clock } from 'lucide-react';
 import { useBlogPosts } from '../hooks/useApi.js';
+import PageHeader from '../components/site/PageHeader.jsx';
+import NextStep from '../components/site/NextStep.jsx';
 
-const categories = ['Safari', 'Hiking', 'Travel Tips', 'Community', 'Budget', 'International'];
+const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
 
+export const formatPostDate = (value) => {
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? value : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+function PostMeta({ post, light }) {
+  return (
+    <p className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-xs ${light ? 'text-white/75' : 'text-brand-dark/55'}`}>
+      {post.category && <span className="font-semibold uppercase tracking-[0.14em]">{post.category}</span>}
+      {post.date && <span>{formatPostDate(post.date)}</span>}
+      {post.readTime && (
+        <span className="inline-flex items-center gap-1">
+          <Clock className="h-3.5 w-3.5" aria-hidden />
+          {post.readTime}
+        </span>
+      )}
+    </p>
+  );
+}
+
+/** Journal: the latest guide leads full-width, the rest follow in a calm grid; categories filter in place. */
 export default function Blog() {
-  const { data: postsData } = useBlogPosts();
-  const blogPosts = (postsData || []).filter((p) => p.slug?.trim());
-  const popular = blogPosts.filter((p) => p.featured).slice(0, 3);
+  const { data, loading } = useBlogPosts();
+  const posts = (data || []).filter((p) => p.slug?.trim());
+  const categories = [...new Set(posts.map((p) => p.category).filter(Boolean))];
+  const [category, setCategory] = useState('');
+  const shown = category ? posts.filter((p) => p.category === category) : posts;
+  const [lead, ...rest] = shown;
 
   return (
-    <div className="relative">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_40%_0%,rgba(212,169,106,0.07),transparent_50%)]" />
-      <div className="relative mx-auto max-w-7xl px-4 py-12 md:px-6">
-        <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-primary/90">
-              <BookOpen className="h-4 w-4" aria-hidden />
-              Journal
-            </p>
-            <h1 className="mt-2 font-display text-4xl font-bold text-brand-dark md:text-5xl">Travel guides &amp; tips</h1>
-            <p className="mt-3 max-w-xl font-light text-brand-dark/75">Practical advice from our team and community.</p>
-          </div>
-        </div>
-
-        <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_320px]">
-          <div className="grid gap-8 sm:grid-cols-2">
-            {blogPosts.map((post) => (
-              <article
-                key={post.slug}
-                className="flex flex-col overflow-hidden rounded-3xl border border-white/35 bg-white/25 shadow-lg backdrop-blur-xl transition hover:border-accent/30"
-              >
-                <Link to={`/blog/${post.slug}`} className="relative aspect-[16/10] overflow-hidden">
-                  <img
-                    src={post.image}
-                    alt={post.title}
-                    className="h-full w-full object-cover transition duration-500 hover:scale-105"
-                  />
-                  <span className="absolute left-3 top-3 rounded-full border border-white/30 bg-primary/90 px-2.5 py-0.5 text-xs font-bold text-brand-light backdrop-blur-sm">
-                    {post.category}
-                  </span>
-                </Link>
-                <div className="flex flex-1 flex-col p-5">
-                  <h2 className="font-display text-lg font-bold leading-snug text-brand-dark">
-                    <Link to={`/blog/${post.slug}`} className="transition hover:text-primary">
-                      {post.title}
-                    </Link>
-                  </h2>
-                  <p className="mt-2 flex-1 text-sm font-light text-brand-dark/75">{post.excerpt}</p>
-                  <div className="mt-4 flex items-center justify-between text-xs font-extralight text-brand-dark/50">
-                    <span className="inline-flex items-center gap-1">
-                      <Calendar className="h-3.5 w-3.5" aria-hidden />
-                      {post.date}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" aria-hidden />
-                      {post.readTime}
-                    </span>
-                  </div>
-                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <Link
-                      to={`/blog/${post.slug}`}
-                      className="inline-flex w-fit items-center gap-1 rounded-full border border-primary/35 bg-white/40 px-4 py-2 text-sm font-semibold text-primary backdrop-blur-sm transition hover:bg-white/60"
-                    >
-                      Read more
-                      <ArrowRight className="h-4 w-4" aria-hidden />
-                    </Link>
-                    <BlogShareBar title={post.title} slug={post.slug} compact />
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          <aside className="space-y-8 lg:sticky lg:top-28">
-            <div className="glass-surface-strong rounded-3xl p-6">
-              <h3 className="flex items-center gap-2 font-display text-lg font-bold text-brand-dark">
-                <Sparkles className="h-5 w-5 text-primary" aria-hidden />
-                Popular posts
-              </h3>
-              <ul className="mt-4 space-y-3 text-sm font-light">
-                {popular.map((p) => (
-                  <li key={p.slug}>
-                    <Link to={`/blog/${p.slug}`} className="text-primary transition hover:underline">
-                      {p.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="glass-surface rounded-3xl p-6">
-              <h3 className="font-display text-lg font-bold text-brand-dark">Categories</h3>
-              <ul className="mt-4 flex flex-wrap gap-2">
-                {categories.map((c) => (
-                  <li key={c}>
-                    <span className="rounded-full border border-white/40 bg-white/35 px-3 py-1 text-xs font-medium text-brand-dark/85 backdrop-blur-sm">
-                      {c}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="glass-surface rounded-3xl p-6">
-              <h3 className="font-display text-lg font-bold text-brand-dark">Newsletter</h3>
-              <p className="mt-2 text-sm font-extralight text-brand-dark/70">New guides in your inbox.</p>
-              <form
-                className="mt-4 flex flex-col gap-2"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  e.target.reset();
-                }}
-              >
-                <label htmlFor="blog-side-news" className="sr-only">
-                  Email
-                </label>
-                <input
-                  id="blog-side-news"
-                  type="email"
-                  required
-                  placeholder="Email"
-                  className="glass-input text-sm"
-                />
-                <button type="submit" className="rounded-xl bg-primary py-2.5 text-sm font-bold text-accent shadow-sm hover:bg-primary/90">
-                  Subscribe
+    <div>
+      <PageHeader eyebrow="Journal" title="Travel" accent="guides & tips" description="Practical advice from our guides and travellers, before you go.">
+        {categories.length > 1 && (
+          <div className="mx-auto max-w-6xl px-4 pb-5 md:px-6">
+            <div className="scrollbar-hide -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="group" aria-label="Categories">
+              {['', ...categories].map((c) => (
+                <button
+                  key={c || 'all'}
+                  type="button"
+                  aria-pressed={category === c}
+                  onClick={() => setCategory(c)}
+                  className={`inline-flex min-h-[40px] shrink-0 items-center rounded-full border px-4 text-sm font-medium transition-colors ${ring} ${
+                    category === c ? 'border-primary bg-primary text-white' : 'border-brand-dark/15 bg-white text-brand-dark/80 hover:border-brand-dark/40'
+                  }`}
+                >
+                  {c || 'All guides'}
                 </button>
-              </form>
+              ))}
             </div>
-          </aside>
-        </div>
-      </div>
+          </div>
+        )}
+      </PageHeader>
+
+      <section className="mx-auto max-w-6xl px-4 py-10 md:px-6">
+        {loading && !posts.length ? (
+          <div className="h-80 animate-pulse rounded-[22px] bg-brand-dark/[0.06]" aria-hidden />
+        ) : !lead ? (
+          <p className="rounded-[22px] bg-brand-bg px-6 py-10 text-center text-brand-dark/70">New guides are being written. Check back soon.</p>
+        ) : (
+          <>
+            <Link
+              to={`/blog/${lead.slug}`}
+              className={`group relative block overflow-hidden rounded-[22px] bg-brand-dark shadow-[0_24px_48px_-28px_rgba(13,27,42,0.6)] ${ring}`}
+            >
+              <div className="aspect-[4/3] sm:aspect-[21/9]">
+                <img src={lead.image} alt="" className="h-full w-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-[1.03]" />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-dark/90 via-brand-dark/30 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-10">
+                <PostMeta post={lead} light />
+                <h2 className="mt-2 max-w-3xl text-2xl font-semibold leading-tight tracking-tight sm:text-4xl">{lead.title}</h2>
+                {lead.excerpt && <p className="mt-3 hidden max-w-2xl text-[15px] text-white/80 sm:block">{lead.excerpt}</p>}
+                <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold underline decoration-brand-orange decoration-2 underline-offset-4">
+                  Read the guide
+                  <ArrowRight className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5" aria-hidden />
+                </span>
+              </div>
+            </Link>
+
+            {rest.length > 0 && (
+              <ul className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                {rest.map((post) => (
+                  <li key={post.slug}>
+                    <Link to={`/blog/${post.slug}`} className={`group block ${ring}`}>
+                      <div className="aspect-[16/10] overflow-hidden rounded-[18px] bg-brand-dark/10">
+                        <img src={post.image} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
+                      </div>
+                      <div className="mt-4">
+                        <PostMeta post={post} />
+                        <h2 className="mt-1.5 text-lg font-semibold leading-snug text-brand-dark group-hover:text-primary">{post.title}</h2>
+                        {post.excerpt && <p className="mt-2 line-clamp-2 text-sm text-brand-dark/65">{post.excerpt}</p>}
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+      </section>
+
+      <NextStep title="Read enough?" text="Turn the guide into a trip. Tell us when and who’s coming." secondary={{ to: '/gallery', label: 'See trip albums' }} />
     </div>
   );
 }

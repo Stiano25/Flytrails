@@ -1,116 +1,154 @@
-import { Link, Navigate, useParams } from 'react-router-dom';
-import { MessageCircle, ChevronRight, Star } from 'lucide-react';
+import { useState } from 'react';
+import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Check, ExternalLink, MapPin, MessageCircle, Star } from 'lucide-react';
 import { useAccommodation } from '../hooks/useApi.js';
 import { useWhatsappLink } from '../hooks/useWhatsappLink.js';
+import NextStep from '../components/site/NextStep.jsx';
+import { DEMO_STAY } from '../data/devFixtures.js';
 
-function formatKes(value) {
-  return new Intl.NumberFormat('en-KE', {
-    style: 'currency',
-    currency: 'KES',
-    maximumFractionDigits: 0,
-  }).format(value || 0);
-}
+const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
+const formatKes = (n) => new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', maximumFractionDigits: 0 }).format(n || 0);
 
+/**
+ * One stay: photos first, the key facts, what's there, and a booking chat that is always in reach
+ * (a panel beside the text on desktop, a bar at the bottom on phones).
+ */
 export default function AccommodationDetail() {
   const { slug } = useParams();
-  const { data: item, loading, error } = useAccommodation(slug);
-  const fallbackWhatsapp = useWhatsappLink();
+  const [params] = useSearchParams();
+  const demo = import.meta.env.DEV && slug === 'demo' && params.get('demo') === '1';
+  const { data, loading, error } = useAccommodation(demo ? null : slug);
+  const item = demo ? DEMO_STAY : data;
+  const whatsapp = useWhatsappLink();
+  const [photo, setPhoto] = useState(0);
 
-  if (!loading && (error || !item)) {
-    return <Navigate to="/404" replace />;
-  }
-  if (loading) {
-    return (
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-5 md:px-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 w-2/3 max-w-md rounded-lg bg-neutral-200" />
-          <div className="aspect-[16/10] w-full rounded-3xl bg-neutral-200 sm:aspect-[21/9]" />
-          <div className="h-4 w-full max-w-lg rounded bg-neutral-100" />
-        </div>
-      </div>
-    );
-  }
+  if (!demo && !loading && (error || !item)) return <Navigate to="/404" replace />;
+  if (!item) return <div className="h-[70vh] animate-pulse bg-brand-bg" aria-hidden />;
 
-  const directWhatsapp = item.bookingWhatsapp ? `https://wa.me/${item.bookingWhatsapp}` : fallbackWhatsapp;
-  const message = encodeURIComponent(`Hello Flytrails, I would like to book a stay at ${item.title}.`);
-  const bookStayHref = `${directWhatsapp}${directWhatsapp.includes('?') ? '&' : '?'}text=${message}`;
+  const photos = [item.image, ...(item.gallery || [])].filter(Boolean).filter((u, i, a) => a.indexOf(u) === i);
+  const chatHref = `${item.bookingWhatsapp ? `https://wa.me/${item.bookingWhatsapp}` : whatsapp.split('?')[0]}?text=${encodeURIComponent(
+    `Hello Flytrails, I would like to book a stay at ${item.title}.`
+  )}`;
+
+  const actions = (
+    <>
+      <a
+        href={chatHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-brand-orange text-[15px] font-semibold text-brand-dark hover:bg-[#f4a53f] ${ring}`}
+      >
+        <MessageCircle className="h-4 w-4" aria-hidden />
+        Check dates on WhatsApp
+      </a>
+      {item.bookingLink && (
+        <a
+          href={item.bookingLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full border border-brand-dark/15 text-sm font-semibold text-brand-dark hover:border-brand-dark/40 ${ring}`}
+        >
+          Book online
+          <ExternalLink className="h-4 w-4" aria-hidden />
+        </a>
+      )}
+    </>
+  );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-5 sm:pb-20 sm:pt-8 md:px-6 md:pb-16 md:pt-12">
-      <nav className="mb-5 flex flex-wrap items-center gap-x-1 gap-y-1 text-xs text-brand-dark/70 sm:mb-6 sm:text-sm" aria-label="Breadcrumb">
-        <Link to="/" className="shrink-0 hover:text-primary">Home</Link>
-        <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50 sm:h-4 sm:w-4" />
-        <Link to="/accommodations" className="shrink-0 hover:text-primary">Accommodations</Link>
-        <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50 sm:h-4 sm:w-4" />
-        <span className="min-w-0 max-w-[min(100%,12rem)] truncate font-medium text-brand-dark sm:max-w-none sm:whitespace-normal">{item.title}</span>
-      </nav>
+    <div className="pb-24 lg:pb-0">
+      {demo && (
+        <p className="bg-brand-orange/20 px-4 py-2 text-center text-sm font-medium text-brand-dark">
+          Development preview with placeholder content. This page is not available on the live site.
+        </p>
+      )}
 
-      <div className="flex flex-col gap-8 lg:grid lg:grid-cols-[1fr_min(320px,100%)] lg:items-start lg:gap-10">
-        <aside className="order-1 lg:sticky lg:order-2 lg:top-24">
-          <div className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
-            <p className="text-xs uppercase tracking-wider text-brand-dark/60">From</p>
-            <p className="mt-1 font-display text-2xl font-bold text-primary sm:text-3xl">{formatKes(item.priceFrom)}</p>
-            <p className="text-sm text-brand-dark/60">per night / package</p>
-            <a
-              href={bookStayHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-semibold text-white hover:opacity-95"
-            >
-              <MessageCircle className="h-4 w-4 shrink-0" />
-              Book stay
-            </a>
+      <div className="mx-auto max-w-6xl px-4 pt-6 md:px-6">
+        <Link to="/accommodations" className={`inline-flex items-center gap-1.5 text-sm font-medium text-brand-dark/60 hover:text-primary ${ring}`}>
+          <ArrowLeft className="h-4 w-4" aria-hidden />
+          All stays
+        </Link>
+        <h1 className="mt-4 text-3xl font-semibold tracking-tight text-brand-dark md:text-4xl">{item.title}</h1>
+        <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[15px] text-brand-dark/65">
+          {item.location && (
+            <span className="inline-flex items-center gap-1">
+              <MapPin className="h-4 w-4" aria-hidden />
+              {item.location}
+            </span>
+          )}
+          {item.rating ? (
+            <span className="inline-flex items-center gap-1 font-medium text-brand-dark">
+              <Star className="h-4 w-4 fill-brand-orange text-brand-orange" aria-hidden />
+              {item.rating} / 5
+            </span>
+          ) : null}
+          {item.priceFrom > 0 && (
+            <span>
+              From <strong className="font-semibold text-brand-dark">{formatKes(item.priceFrom)}</strong> <span className="italic">/ night</span>
+            </span>
+          )}
+        </p>
+
+        {photos.length > 0 && (
+          <div className="mt-6">
+            <img src={photos[photo]} alt="" className="aspect-[16/9] w-full rounded-[22px] object-cover" />
+            {photos.length > 1 && (
+              <ul className="scrollbar-hide mt-3 flex gap-2 overflow-x-auto" aria-label="Photos">
+                {photos.map((url, i) => (
+                  <li key={url} className="shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setPhoto(i)}
+                      aria-label={`Show photo ${i + 1}`}
+                      aria-pressed={photo === i}
+                      className={`block h-16 w-24 overflow-hidden rounded-xl ${ring} ${photo === i ? 'ring-2 ring-brand-orange ring-offset-2' : 'opacity-70 hover:opacity-100'}`}
+                    >
+                      <img src={url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 md:px-6 lg:grid-cols-[1fr_20rem]">
+        <div>
+          {(item.description || item.shortDescription) && (
+            <p className="whitespace-pre-line text-[17px] leading-[1.8] text-brand-dark/80">{item.description || item.shortDescription}</p>
+          )}
+          {item.amenities?.length > 0 && (
+            <section className="mt-10 border-t border-brand-dark/10 pt-8">
+              <h2 className="text-2xl font-semibold tracking-tight text-brand-dark">
+                What’s <span className="font-light italic">there</span>
+              </h2>
+              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                {item.amenities.map((a) => (
+                  <li key={a} className="flex gap-2.5 text-[15px] text-brand-dark/80">
+                    <Check className="mt-1 h-4 w-4 shrink-0 text-primary" strokeWidth={2.5} aria-hidden />
+                    {a}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+
+        <aside className="hidden lg:block">
+          <div className="sticky top-28 space-y-3 rounded-[22px] border border-brand-dark/10 bg-white p-6 shadow-[0_18px_40px_-28px_rgba(13,27,42,0.5)]">
+            <p className="text-lg font-semibold text-brand-dark">Want to stay here?</p>
+            <p className="text-sm text-brand-dark/60">Send your dates and group size and we’ll confirm availability.</p>
+            {actions}
           </div>
         </aside>
-
-        <section className="order-2 min-w-0 lg:order-1">
-          {item.image && (
-            <div className="overflow-hidden rounded-2xl bg-neutral-100 sm:rounded-3xl">
-              <img src={item.image} alt={item.title} className="aspect-[4/3] w-full object-cover sm:aspect-[16/9] sm:max-h-[min(56vh,480px)] md:max-h-[420px]" />
-            </div>
-          )}
-          <h1 className="mt-5 font-display text-2xl font-bold leading-tight text-brand-dark sm:mt-6 sm:text-3xl md:text-4xl">{item.title}</h1>
-          <p className="mt-2 text-sm text-brand-dark/75 sm:text-base">{item.location}</p>
-          {item.rating ? (
-            <p className="mt-2 inline-flex items-center gap-1 text-sm text-amber-600">
-              <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-              {item.rating}/5
-            </p>
-          ) : null}
-
-          <p className="mt-4 text-sm leading-relaxed text-brand-dark/85 sm:mt-5 sm:text-base">{item.description || item.shortDescription}</p>
-
-          {item.amenities?.length ? (
-            <div className="mt-6">
-              <h2 className="font-semibold text-brand-dark">Amenities</h2>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {item.amenities.map((amenity) => (
-                  <span key={amenity} className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                    {amenity}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          {item.gallery?.length ? (
-            <div className="mt-8">
-              <h2 className="font-semibold text-brand-dark">Gallery</h2>
-              <div className="mt-3 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3">
-                {item.gallery.map((url, index) => (
-                  <img
-                    key={`${url}-${index}`}
-                    src={url}
-                    alt={`${item.title} — gallery ${index + 1}`}
-                    className="aspect-square w-full rounded-lg object-cover sm:rounded-xl"
-                    loading="lazy"
-                  />
-                ))}
-              </div>
-            </div>
-          ) : null}
-        </section>
       </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-brand-dark/10 bg-white/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur lg:hidden">
+        <div className="mx-auto max-w-xl">{actions}</div>
+      </div>
+
+      <NextStep title="Make it part of a trip." text="We plan the route, transfers and activities around your stay." />
     </div>
   );
 }

@@ -1,19 +1,23 @@
 import { Link } from 'react-router-dom';
-import { FileText } from 'lucide-react';
-import PageHero from '../components/PageHero.jsx';
-import { pageHeroImages } from '../data/pageHeroImages.js';
+import PageHeader from '../components/site/PageHeader.jsx';
 import { SITE_EMAIL, WHATSAPP_NUMBER } from '../config.js';
+
+const TOC = ["ABOUT FLYTRAILS", "BOOKINGS & PAYMENTS", "CANCELLATIONS & REFUNDS", "TRAVEL REQUIREMENTS", "HEALTH & SAFETY", "CODE OF CONDUCT", "ITINERARY CHANGES", "THIRD-PARTY SERVICES", "MEDIA & CONTENT", "LIABILITY LIMITATION", "INTELLECTUAL PROPERTY", "PRIVACY", "GOVERNING LAW", "CONTACT"];
 
 const phoneDisplay = `+${WHATSAPP_NUMBER}`;
 const phoneHref = `tel:+${WHATSAPP_NUMBER}`;
 
+/** "BOOKINGS & PAYMENTS" -> "Bookings & payments" */
+const sentenceCase = (t) => t.charAt(0) + t.slice(1).toLowerCase().replace(/\bflytrails\b/g, 'Flytrails');
+const slug = (t) => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
 function Section({ n, title, children }) {
   return (
-    <section className="border-b border-brand-dark/10 pb-8 last:border-0 last:pb-0">
-      <h2 className="font-display text-xl font-bold text-brand-dark md:text-2xl">
-        {n}. {title}
+    <section id={slug(title)} className="scroll-mt-28 border-b border-brand-dark/10 pb-8 last:border-0 last:pb-0">
+      <h2 className="text-xl font-semibold tracking-tight text-brand-dark md:text-2xl">
+        {n}. {sentenceCase(title)}
       </h2>
-      <div className="mt-4 space-y-4 text-sm font-light leading-relaxed text-brand-dark/85 md:text-base">
+      <div className="mt-4 space-y-4 text-[15px] leading-relaxed text-brand-dark/80 md:text-base">
         {children}
       </div>
     </section>
@@ -22,22 +26,29 @@ function Section({ n, title, children }) {
 
 export default function Terms() {
   return (
-    <div className="relative">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(27,67,50,0.07),transparent_55%)]" />
-      <PageHero
-        imageUrl={pageHeroImages.trips}
-        imageAlt="East Africa landscape — Flytrails"
-        title="Terms & Conditions"
-        subtitle="By booking a trip, using our website, or engaging with our services, you agree to the following Terms & Conditions."
+    <div>
+      <PageHeader
+        eyebrow="Legal"
+        title="Terms &"
+        accent="conditions"
+        description="By booking a trip, using our website or our services, you agree to the terms below."
       />
 
-      <div className="relative mx-auto max-w-3xl px-4 py-12 md:px-6 md:py-16">
-        <p className="mb-8 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-primary/90">
-          <FileText className="h-4 w-4" aria-hidden />
-          Legal
-        </p>
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 md:px-6 lg:grid-cols-[14rem_1fr]">
+        <nav aria-label="On this page" className="hidden lg:sticky lg:top-28 lg:block lg:self-start">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-dark/45">On this page</p>
+          <ol className="mt-3 space-y-2 text-sm">
+            {TOC.map((t, i) => (
+              <li key={t}>
+                <a href={`#${slug(t)}`} className="text-brand-dark/65 hover:text-primary">
+                  {i + 1}. {sentenceCase(t)}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
 
-        <article className="glass-surface-strong space-y-10 rounded-3xl p-6 md:p-10">
+        <article className="max-w-3xl space-y-10">
           <Section n={1} title="ABOUT FLYTRAILS">
             <p>
               Flytrails organizes travel experiences including hiking trips, safaris, beach getaways, and international tours. Our goal is to
@@ -171,14 +182,14 @@ export default function Terms() {
           <p className="border-t border-brand-dark/10 pt-8 text-sm font-medium text-brand-dark/90 md:text-base">
             By using our services, you confirm that you have read, understood, and agreed to these Terms & Conditions.
           </p>
+          <p className="text-sm text-brand-dark/60">
+            Questions about these terms?{' '}
+            <Link to="/contact" className="text-primary underline transition hover:text-primary/80">
+              Contact us
+            </Link>
+            .
+          </p>
         </article>
-
-        <p className="mt-8 text-center text-sm font-light text-brand-dark/60">
-          <Link to="/contact" className="text-primary underline transition hover:text-primary/80">
-            Contact us
-          </Link>{' '}
-          if you have questions about these terms.
-        </p>
       </div>
     </div>
   );

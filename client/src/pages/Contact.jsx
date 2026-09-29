@@ -1,20 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Phone, Mail, MapPin, Clock, MessageCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Phone, Mail, MapPin, Clock, MessageCircle, Luggage } from 'lucide-react';
 import {
   WHATSAPP_URL,
   SITE_EMAIL,
   SITE_PHONE_DISPLAY,
-  CONTACT_LOCATION_IMAGE,
   GOOGLE_MAPS_LOCATION_URL,
 } from '../config.js';
-import { pageHeroImages } from '../data/pageHeroImages.js';
-import PageHero from '../components/PageHero.jsx';
+import PageHeader from '../components/site/PageHeader.jsx';
 import Toast from '../components/Toast.jsx';
 import { useSiteContent, useSubmit } from '../hooks/useApi.js';
 import { api } from '../data/api.js';
 
-const fieldClass = 'glass-input mt-1.5 w-full';
-const labelClass = 'text-xs font-bold uppercase tracking-wider text-brand-dark/70';
+const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
+const fieldClass =
+  'mt-1.5 w-full rounded-xl border border-brand-dark/15 bg-white px-3.5 py-3 text-[15px] text-brand-dark transition placeholder:text-brand-dark/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25';
+const labelClass = 'text-sm font-semibold text-brand-dark';
 
 export default function Contact() {
   const [toast, setToast] = useState({ show: false, message: '', variant: 'success' });
@@ -64,35 +65,72 @@ export default function Contact() {
     }
   }
 
-  return (
-    <div className="relative">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(27,67,50,0.07),transparent_55%)]" />
-      <PageHero
-        imageUrl={pageHeroImages.trips}
-        imageAlt="East Africa landscape — Flytrails"
-        title="Get in touch"
-        subtitle="We reply within one business day — faster on WhatsApp."
-      />
+  const routes = [
+    { title: 'Planning a trip?', text: 'Three quick questions and we take it from there.', to: '/?plan=1', label: 'Plan my trip', Icon: Luggage, primary: true },
+    { title: 'Quick question?', text: 'The fastest way to reach us, even on Sundays.', href: whatsappHref, label: 'Chat on WhatsApp', Icon: MessageCircle },
+    { title: 'Anything else?', text: 'Partnerships, press, groups: send us a message below.', anchor: '#message', label: 'Write to us', Icon: Mail },
+  ];
 
-      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-8 md:px-6">
-        <div className="mt-4 grid gap-10 lg:grid-cols-2">
-          <form onSubmit={handleSubmit} className="glass-surface-strong space-y-4 rounded-3xl p-6 md:p-8">
-            <label className="flex flex-col text-sm">
-              <span className={labelClass}>Name</span>
-              <input name="name" required className={fieldClass} />
-            </label>
-            <label className="flex flex-col text-sm">
-              <span className={labelClass}>Email</span>
-              <input name="email" type="email" required className={fieldClass} />
-            </label>
-            <label className="flex flex-col text-sm">
-              <span className={labelClass}>Phone</span>
-              <input name="phone" className={fieldClass} />
-            </label>
-            <label className="flex flex-col text-sm">
-              <span className={labelClass}>Subject</span>
-              <input name="subject" required className={fieldClass} />
-            </label>
+  return (
+    <div>
+      <PageHeader eyebrow="Contact" title="Talk to" accent="a real person" description="We reply within one business day, and faster on WhatsApp." />
+
+      <section className="mx-auto max-w-6xl px-4 py-10 md:px-6">
+        {/* Point people to the right channel first. */}
+        <ul className="grid gap-4 md:grid-cols-3">
+          {routes.map((r) => {
+            const cls = `mt-4 inline-flex min-h-[44px] items-center gap-2 rounded-full px-5 text-sm font-semibold transition-colors ${ring} ${
+              r.primary ? 'bg-brand-orange text-brand-dark hover:bg-[#f4a53f]' : 'border border-brand-dark/15 text-brand-dark hover:border-brand-dark/40'
+            }`;
+            const content = (
+              <>
+                <r.Icon className="h-4 w-4" aria-hidden />
+                {r.label}
+              </>
+            );
+            return (
+              <li key={r.title} className="rounded-[22px] border border-brand-dark/10 bg-white p-6 shadow-[0_18px_40px_-30px_rgba(13,27,42,0.5)]">
+                <p className="text-lg font-semibold text-brand-dark">{r.title}</p>
+                <p className="mt-1 text-[15px] text-brand-dark/65">{r.text}</p>
+                {r.to ? (
+                  <Link to={r.to} className={cls}>
+                    {content}
+                  </Link>
+                ) : (
+                  <a href={r.href || r.anchor} {...(r.href ? { target: '_blank', rel: 'noopener noreferrer' } : {})} className={cls}>
+                    {content}
+                  </a>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_20rem]">
+          <form id="message" onSubmit={handleSubmit} className="scroll-mt-24 space-y-4" aria-labelledby="message-title">
+            <h2 id="message-title" className="text-2xl font-semibold tracking-tight text-brand-dark">
+              Send a <span className="font-light italic">message</span>
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="flex flex-col text-sm">
+                <span className={labelClass}>Name</span>
+                <input name="name" required autoComplete="name" className={fieldClass} />
+              </label>
+              <label className="flex flex-col text-sm">
+                <span className={labelClass}>Email</span>
+                <input name="email" type="email" required autoComplete="email" className={fieldClass} />
+              </label>
+              <label className="flex flex-col text-sm">
+                <span className={labelClass}>
+                  Phone <span className="font-normal text-brand-dark/50">(optional)</span>
+                </span>
+                <input name="phone" type="tel" autoComplete="tel" className={fieldClass} />
+              </label>
+              <label className="flex flex-col text-sm">
+                <span className={labelClass}>Subject</span>
+                <input name="subject" required className={fieldClass} />
+              </label>
+            </div>
             <label className="flex flex-col text-sm">
               <span className={labelClass}>Message</span>
               <textarea name="message" required rows={5} className={fieldClass} />
@@ -100,82 +138,41 @@ export default function Contact() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-accent shadow-md transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+              className={`inline-flex min-h-[48px] items-center justify-center rounded-full bg-primary px-7 text-[15px] font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60 ${ring}`}
             >
               {loading ? 'Sending…' : 'Send message'}
             </button>
           </form>
 
-          <div className="space-y-5">
-            <a
-              href={whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-3xl bg-[#25D366] px-6 py-5 text-lg font-bold text-white shadow-lg transition hover:opacity-95"
-            >
-              <MessageCircle className="h-6 w-6" aria-hidden />
-              Chat on WhatsApp
-            </a>
-            <div className="glass-surface rounded-3xl p-6">
-              <h2 className="flex items-center gap-2 font-display text-lg font-bold text-brand-dark">
-                <Phone className="h-5 w-5 text-primary" aria-hidden />
-                Phone
-              </h2>
-              <p className="mt-3 font-light text-brand-dark/85">{phone}</p>
-            </div>
-            <div className="glass-surface rounded-3xl p-6">
-              <h2 className="flex items-center gap-2 font-display text-lg font-bold text-brand-dark">
-                <Mail className="h-5 w-5 text-primary" aria-hidden />
-                Email
-              </h2>
-              <a href={`mailto:${email}`} className="mt-3 block font-medium text-primary hover:underline">
+          <aside aria-label="Contact details" className="space-y-5 text-[15px] text-brand-dark/75 lg:pt-12">
+            <p className="flex items-start gap-3">
+              <Phone className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+              <a href={`tel:${phone.replace(/\s/g, '')}`} className={`font-medium text-brand-dark hover:text-primary ${ring}`}>
+                {phone}
+              </a>
+            </p>
+            <p className="flex items-start gap-3">
+              <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+              <a href={`mailto:${email}`} className={`break-all font-medium text-brand-dark hover:text-primary ${ring}`}>
                 {email}
               </a>
-            </div>
-            <div className="glass-surface rounded-3xl p-6">
-              <h2 className="flex items-center gap-2 font-display text-lg font-bold text-brand-dark">
-                <MapPin className="h-5 w-5 text-primary" aria-hidden />
-                Location
-              </h2>
-              <p className="mt-3 font-light text-brand-dark/85">{address}</p>
-            </div>
-            <div className="glass-surface rounded-3xl p-6">
-              <h2 className="flex items-center gap-2 font-display text-lg font-bold text-brand-dark">
-                <Clock className="h-5 w-5 text-primary" aria-hidden />
-                Office hours
-              </h2>
-              <p className="mt-3 text-sm font-extralight leading-relaxed text-brand-dark/80">
-                Mon–Sat: 9:00–18:00 EAT · Sun: closed (WhatsApp monitored)
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <figure className="glass-surface-strong mt-12 overflow-hidden rounded-3xl">
-          <a
-            href={GOOGLE_MAPS_LOCATION_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group relative block"
-          >
-            <img
-              src={CONTACT_LOCATION_IMAGE}
-              alt="Nairobi — open Google Maps for directions"
-              className="aspect-[21/9] max-h-[360px] w-full object-cover transition duration-500 group-hover:scale-[1.02]"
-              loading="lazy"
-            />
-            <div className="absolute inset-0 flex items-center justify-center bg-brand-dark/0 transition group-hover:bg-brand-dark/35">
-              <span className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-brand-dark opacity-0 shadow-lg transition group-hover:opacity-100">
-                <MapPin className="h-4 w-4" aria-hidden />
-                Open in Google Maps
+            </p>
+            <p className="flex items-start gap-3">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+              <span>
+                {address} ·{' '}
+                <a href={GOOGLE_MAPS_LOCATION_URL} target="_blank" rel="noopener noreferrer" className={`font-medium text-primary underline underline-offset-4 ${ring}`}>
+                  Open in Maps
+                </a>
               </span>
-            </div>
-          </a>
-          <figcaption className="border-t border-white/25 bg-white/20 px-4 py-3 text-center text-sm font-light text-brand-dark/75 backdrop-blur-sm">
-            Based in <strong className="font-semibold text-brand-dark">Nairobi, Kenya</strong> — tap the image to open the map.
-          </figcaption>
-        </figure>
-      </div>
+            </p>
+            <p className="flex items-start gap-3">
+              <Clock className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+              <span>Mon–Sat 9:00–18:00 EAT. Sunday closed, WhatsApp still watched.</span>
+            </p>
+          </aside>
+        </div>
+      </section>
 
       <Toast
         message={toast.message}

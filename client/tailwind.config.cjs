@@ -15,23 +15,22 @@ module.exports = {
         'brand-dark': '#0D1B2A',
         'brand-light': '#FFFFFF',
         'brand-bg': '#F8F5F0',
+        /** Orange from the Flytrails logo; pair with brand-dark text for contrast. */
+        'brand-orange': '#EE921E',
       },
       fontFamily: {
-        beauty: ['"Beauty Mountains"', 'cursive'],
-        /** UI typography — Helvetica stack (falls back to system sans on platforms without Helvetica) */
-        display: [
-          '"Helvetica Neue"',
-          'Helvetica',
-          'Arial',
-          'system-ui',
-          'sans-serif',
-        ],
-        sans: ['"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
+        /** Site typeface: Poppins, self-hosted in /public/fonts (Helvetica stack as fallback). */
+        sans: ['Poppins', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
+        display: ['Poppins', '"Helvetica Neue"', 'Helvetica', 'Arial', 'system-ui', 'sans-serif'],
+        /** Hero word "Adventures": MonteCarlo script, self-hosted. */
+        script: ['MonteCarlo', '"Brush Script MT"', 'cursive'],
       },
       keyframes: {
+        /** Opacity only: a lingering transform would turn the page wrapper into the containing block for
+         *  position: fixed children (sticky booking bars) and pin them to the page instead of the screen. */
         fadeIn: {
-          '0%': { opacity: '0', transform: 'translateY(6px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
         },
       },
       animation: {
