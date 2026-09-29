@@ -26,9 +26,11 @@ module.exports = {
         script: ['MonteCarlo', '"Brush Script MT"', 'cursive'],
       },
       keyframes: {
+        /** Opacity only: a lingering transform would turn the page wrapper into the containing block for
+         *  position: fixed children (sticky booking bars) and pin them to the page instead of the screen. */
         fadeIn: {
-          '0%': { opacity: '0', transform: 'translateY(6px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
         },
       },
       animation: {

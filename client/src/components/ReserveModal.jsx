@@ -31,26 +31,26 @@ export default function ReserveModal({ open, onClose, tripTitle }) {
     >
       <div
         ref={focusTrapRef}
-        className="max-w-md rounded-3xl border border-white/35 bg-white/90 p-6 shadow-2xl backdrop-blur-xl"
+        className="picker-fade w-full max-w-md rounded-[22px] bg-white p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between gap-4">
-          <h2 id="reserve-title" className="font-display text-xl font-bold text-brand-dark">
-            Reserve via WhatsApp
+          <h2 id="reserve-title" className="text-xl font-semibold tracking-tight text-brand-dark">
+            Reserve your spot
           </h2>
           <button
             onClick={onClose}
-            className="rounded-full border border-brand-dark/10 p-2 text-brand-dark transition hover:bg-white/80"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full text-brand-dark/70 transition hover:bg-brand-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
             aria-label="Close modal"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
-        <p className="text-sm font-light text-brand-dark/80">
+        <p className="text-[15px] text-brand-dark/75">
           Complete your booking for <strong className="font-semibold text-brand-dark">{tripTitle}</strong> by messaging our team.
-          We&apos;ll confirm availability and send payment details.
+          Your message is already written: send it and we’ll confirm your seat and share payment details.
         </p>
-        <p className="mt-3 text-xs font-light text-brand-dark/65">
+        <p className="mt-3 text-xs text-brand-dark/55">
           By continuing, you agree to our{' '}
           <Link to="/terms" className="font-medium text-primary underline underline-offset-2 hover:text-primary/80" onClick={onClose}>
             Terms & Conditions
@@ -59,20 +59,20 @@ export default function ReserveModal({ open, onClose, tripTitle }) {
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <a
-            href={whatsappHref}
+            href={`${whatsappHref.split('?')[0]}?text=${encodeURIComponent(`Hi Flytrails, I'd like to reserve a spot on ${tripTitle}.`)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-center text-sm font-bold text-accent shadow-md"
+            className="inline-flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-full bg-brand-orange px-5 text-center text-[15px] font-semibold text-brand-dark hover:bg-[#f4a53f] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             <MessageCircle className="h-4 w-4" aria-hidden />
-            Open WhatsApp
+            Send on WhatsApp
           </a>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl border border-brand-dark/15 bg-white/60 px-4 py-3 text-sm font-medium text-brand-dark backdrop-blur-sm transition hover:bg-white"
+            className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-brand-dark/15 px-5 text-sm font-medium text-brand-dark transition hover:border-brand-dark/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
-            Close
+            Not yet
           </button>
         </div>
       </div>
