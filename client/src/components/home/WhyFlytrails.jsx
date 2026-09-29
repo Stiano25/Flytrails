@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Crown, Luggage, MessageCircle, Star, Users } from 'lucide-react';
 import { useStories } from '../postcards/stories.js';
 import { useWhatsappLink } from '../../hooks/useWhatsappLink.js';
+import { trackFinder } from '../../lib/trackFinder.js';
+import { openWhatsapp } from '../../lib/whatsapp.js';
 
 const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white';
 const linkClass = `font-medium text-white underline decoration-brand-orange decoration-2 underline-offset-4 hover:text-white/80 ${ring}`;
@@ -9,7 +11,7 @@ const linkClass = `font-medium text-white underline decoration-brand-orange deco
 /**
  * "Why travel with Flytrails": a compact band of proof between trips and stays. Every point comes from
  * what the site already shows (live review rating, About copy, WhatsApp contact, the membership club);
- * nothing here is a new claim. Ends with one action: plan a trip.
+ * nothing here is a new claim. Ends with one action: plan a trip on WhatsApp, message ready to send.
  */
 export default function WhyFlytrails() {
   const { average, ratedCount } = useStories();
@@ -79,14 +81,18 @@ export default function WhyFlytrails() {
           ))}
         </ul>
 
-        <Link
-          to="/?plan=1"
+        <button
+          type="button"
+          onClick={() => {
+            trackFinder('submit', { from: 'why', to: 'whatsapp' });
+            openWhatsapp(whatsappHref, "Hi Flytrails! I'd like to plan a trip. Could you share options and prices?");
+          }}
           className={`mt-9 inline-flex min-h-[48px] items-center gap-2 rounded-full bg-brand-orange px-6 text-[15px] font-semibold text-brand-dark transition-colors duration-150 hover:bg-[#f4a53f] active:scale-[0.98] ${ring}`}
         >
           <Luggage className="h-5 w-5" strokeWidth={1.75} aria-hidden />
           Plan my trip
           <ArrowRight className="h-4 w-4" aria-hidden />
-        </Link>
+        </button>
       </div>
     </section>
   );
