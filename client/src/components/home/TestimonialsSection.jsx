@@ -65,7 +65,7 @@ export default function TestimonialsSection() {
       aria-labelledby="postcards-title"
       className="relative isolate flex h-screen min-h-[34rem] flex-col overflow-hidden text-white supports-[height:100svh]:h-[100svh] [@media(max-height:500px)]:min-h-0"
     >
-      <StoriesBackdrop photo={HIKERS_PHOTO} position="50% 60%" />
+      <StoriesBackdrop photo={HIKERS_PHOTO} position="45% 62%" />
       <div className="mx-auto flex h-full w-full max-w-4xl flex-col px-4 pb-[clamp(1rem,3svh,2rem)] pt-[clamp(1.5rem,6svh,4rem)] md:px-6">
         <header className="text-center">
           <h2 id="postcards-title" className="text-[clamp(1.9rem,min(7vw,5.5svh),3.25rem)] font-semibold leading-tight tracking-tight">

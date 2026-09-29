@@ -215,7 +215,7 @@ export default function Reviews() {
     <div>
       {/* Short photo header (hikers resting on the trail): people chose to read reviews, so get straight to them. */}
       <section className="relative isolate overflow-hidden text-white">
-        <StoriesBackdrop photo={HIKERS_PHOTO} position="50% 55%" />
+        <StoriesBackdrop photo={HIKERS_PHOTO} position="45% 64%" />
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 pb-9 pt-10 text-center md:px-6 md:pb-12 md:pt-14">
           <div className="flex flex-col items-center gap-2">
             <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">

@@ -54,9 +54,9 @@ export default function HomeHero() {
           if (!e.currentTarget.src.endsWith(FALLBACK_HERO)) e.currentTarget.src = FALLBACK_HERO;
         }}
         alt=""
-        width="2400"
-        height="1600"
-        className="absolute inset-0 -z-10 h-full w-full object-cover object-[50%_40%] md:object-center"
+        width="1175"
+        height="779"
+        className="absolute inset-0 -z-10 h-full w-full object-cover object-[63%_35%] md:object-[60%_45%]"
         decoding="async"
         fetchpriority="high"
       />
