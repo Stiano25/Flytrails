@@ -66,7 +66,9 @@ mpesaRouter.post('/pay', async (req, res) => {
 
     if (trip.spots_left !== null && trip.spots_left < parsedSlots) {
       return res.status(400).json({
-        error: `Only ${trip.spots_left} spot${trip.spots_left === 1 ? '' : 's'} remaining for this trip.`,
+        error: trip.spots_left <= 0
+          ? 'Sorry, this trip is completely sold out!'
+          : `Only ${trip.spots_left} spot${trip.spots_left === 1 ? '' : 's'} remaining for this trip.`,
       });
     }
 

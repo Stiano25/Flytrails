@@ -138,6 +138,26 @@ export async function sendBookingConfirmation(booking) {
 
     if (error) {
       console.warn('[resendMail] Error sending customer email (may be restricted in sandbox mode):', error.message);
+      // Fallback for Resend free tier: if customer email cannot be reached directly,
+      // forward customer ticket to admin email so developer can preview the generated ticket
+      const adminEmail = (process.env.ADMIN_NOTIFICATION_EMAIL || 'mualukofrank@gmail.com').trim();
+      if (adminEmail && booking.customer_email.toLowerCase() !== adminEmail.toLowerCase()) {
+        console.log(`[resendMail] Forwarding customer ticket preview to admin email: ${adminEmail}`);
+        try {
+          await resend.emails.send({
+            from,
+            to: adminEmail,
+            subject: `[Customer Ticket Preview for ${booking.customer_email}] Booking Confirmed: ${booking.trip_title}`,
+            html: `
+              <div style="background-color: #fef3c7; border: 1px solid #f59e0b; padding: 12px 16px; margin-bottom: 20px; border-radius: 8px; font-family: sans-serif; font-size: 13px; color: #92400e;">
+                <strong>Resend Sandbox Notice:</strong> This confirmation email was generated for customer <strong>${escapeHtml(booking.customer_email)}</strong>. Since Resend's free testing sender (<code>onboarding@resend.dev</code>) restricts delivery to your verified account email (<code>${escapeHtml(adminEmail)}</code>), it was forwarded here for your preview. Once you verify your domain at <a href="https://resend.com/domains" style="color: #b45309; text-decoration: underline;">resend.com/domains</a>, tickets will deliver directly to each customer.
+              </div>
+            ` + html,
+          });
+        } catch (fwdErr) {
+          console.warn('[resendMail] Fallback preview send failed:', fwdErr.message);
+        }
+      }
       return { ok: false, error: error.message };
     }
     return { ok: true };

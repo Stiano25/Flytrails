@@ -325,10 +325,12 @@ export default function ReserveModal({ open, onClose, trip, tripTitle: fallbackT
               <div className="pt-2 space-y-2.5">
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 px-4 shadow-lg shadow-emerald-600/20 transition focus:outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:opacity-60"
+                  disabled={loading || (trip?.spotsLeft != null && trip.spotsLeft <= 0)}
+                  className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 px-4 shadow-lg shadow-emerald-600/20 transition focus:outline-none focus:ring-2 focus:ring-emerald-500/40 disabled:opacity-60 disabled:bg-slate-400"
                 >
-                  {loading ? (
+                  {trip?.spotsLeft != null && trip.spotsLeft <= 0 ? (
+                    <span>Sold Out — No Spots Remaining</span>
+                  ) : loading ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
                       <span>Requesting M-Pesa STK Push...</span>
@@ -399,7 +401,7 @@ export default function ReserveModal({ open, onClose, trip, tripTitle: fallbackT
 
             <div className="mt-6 flex items-center justify-center gap-2 text-xs text-slate-400">
               <Loader2 className="w-4 h-4 animate-spin text-orange-500" />
-              <span>Listening for payment confirmation...</span>
+              <span>Waiting for payment confirmation...</span>
             </div>
 
             <div className="mt-6">

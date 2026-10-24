@@ -19,6 +19,8 @@ import {
   Mail,
   Calendar,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 function formatKES(val) {
@@ -57,6 +59,8 @@ export default function BookingsAdmin() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Selected booking for detailed modal
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -134,6 +138,17 @@ export default function BookingsAdmin() {
       );
     });
   }, [bookings, search, statusFilter]);
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredBookings.length / pageSize));
+  const paginatedBookings = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredBookings.slice(start, start + pageSize);
+  }, [filteredBookings, currentPage, pageSize]);
 
   // Summary Metrics
   const stats = useMemo(() => {
@@ -248,7 +263,7 @@ export default function BookingsAdmin() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredBookings.map((b) => (
+                {paginatedBookings.map((b) => (
                   <tr key={b.id} className="hover:bg-slate-50/70 transition">
                     <td className="px-5 py-4 font-mono font-bold text-slate-900">
                       <span className="inline-block px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-xs">
@@ -322,6 +337,79 @@ export default function BookingsAdmin() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination Bar */}
+        {filteredBookings.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 bg-slate-50/70 px-5 py-3.5 text-xs text-slate-500">
+            <div className="flex items-center gap-3">
+              <span>
+                Showing <strong className="text-slate-800">{(currentPage - 1) * pageSize + 1}</strong> to{' '}
+                <strong className="text-slate-800">{Math.min(currentPage * pageSize, filteredBookings.length)}</strong> of{' '}
+                <strong className="text-slate-800">{filteredBookings.length}</strong> bookings
+              </span>
+              <div className="flex items-center gap-1.5 border-l border-slate-200 pl-3">
+                <span>Per page:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-orange-500"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage <= 1}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 transition"
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter((p) => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                  .map((p, idx, arr) => {
+                    const prev = arr[idx - 1];
+                    const hasGap = prev && p - prev > 1;
+                    return (
+                      <span key={p} className="flex items-center">
+                        {hasGap && <span className="px-1 text-slate-400">...</span>}
+                        <button
+                          onClick={() => setCurrentPage(p)}
+                          className={`h-8 min-w-[32px] px-2 rounded-lg text-xs font-semibold transition ${
+                            currentPage === p
+                              ? 'bg-slate-900 text-white'
+                              : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      </span>
+                    );
+                  })}
+
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage >= totalPages}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 disabled:opacity-40 transition"
+                  aria-label="Next page"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -437,16 +525,16 @@ export default function BookingsAdmin() {
       )}
 
       {/* Delete confirmation dialog */}
-      <ConfirmDialog
-        open={Boolean(deleteId)}
-        title="Delete booking record"
-        message="Are you sure you want to delete this booking? This will permanently remove the record from your database."
-        confirmText="Delete booking"
-        confirmVariant="danger"
-        loading={deleting}
-        onConfirm={handleDelete}
-        onClose={() => setDeleteId(null)}
-      />
+      {deleteId && (
+        <ConfirmDialog
+          title="Delete booking record"
+          message="Are you sure you want to delete this booking? This will permanently remove the record from your database."
+          confirmLabel="Delete booking"
+          loading={deleting}
+          onConfirm={handleDelete}
+          onCancel={() => setDeleteId(null)}
+        />
+      )}
     </div>
   );
 }

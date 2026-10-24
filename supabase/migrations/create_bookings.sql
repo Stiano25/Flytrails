@@ -1,7 +1,3 @@
--- ══════════════════════════════════════════════════════════════════════════════
--- Bookings table — stores every trip booking initiated via M-Pesa STK Push
--- ══════════════════════════════════════════════════════════════════════════════
-
 create table if not exists public.bookings (
   id                  uuid default gen_random_uuid() primary key,
   ticket_number       text unique not null,                         -- e.g. "FLY-20261024-A3X7"
@@ -60,6 +56,3 @@ create policy "Staff delete bookings"
   to authenticated
   using (public.is_staff_active());
 
--- The server (service role) bypasses RLS for inserts from the API.
--- No public/anon read policy — customers only see their booking via the API response,
--- not by querying Supabase directly.
