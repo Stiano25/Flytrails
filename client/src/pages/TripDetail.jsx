@@ -30,11 +30,22 @@ function Section({ title, accent, children }) {
  */
 export default function TripDetail() {
   const { slug } = useParams();
-  const { data: trip, loading, error } = useTrip(slug);
+  const { data: trip, loading, error, refetch, setData: setTripData } = useTrip(slug);
   const [openDay, setOpenDay] = useState(0);
   const [openFaq, setOpenFaq] = useState(-1);
   const [reserveOpen, setReserveOpen] = useState(false);
   const whatsapp = useWhatsappLink();
+
+  const handleBookingSuccess = (booking) => {
+    // Immediately decrement spots on screen (0ms) so customer sees it instantly
+    setTripData((prev) => {
+      if (!prev) return prev;
+      const updatedSpots = Math.max(0, (prev.spotsLeft ?? 0) - (booking.slots || 1));
+      return { ...prev, spotsLeft: updatedSpots };
+    });
+    // Silently refetch from database in background
+    refetch();
+  };
 
   if (!loading && (error || !trip)) return <Navigate to="/404" replace />;
   if (loading) return <div className="h-[70vh] animate-pulse bg-brand-bg" aria-hidden />;
@@ -257,7 +268,13 @@ export default function TripDetail() {
         primary={{ to: '/custom-tours', label: 'Plan it privately' }}
       />
 
-      <ReserveModal open={reserveOpen} onClose={() => setReserveOpen(false)} trip={trip} tripTitle={trip.title} />
+      <ReserveModal
+        open={reserveOpen}
+        onClose={() => setReserveOpen(false)}
+        trip={trip}
+        tripTitle={trip.title}
+        onBookingSuccess={handleBookingSuccess}
+      />
     </div>
   );
 }

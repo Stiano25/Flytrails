@@ -7,42 +7,28 @@ export function useApi(apiCall, dependencies = []) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const result = await withErrorHandling(apiCall)();
-        
-        if (!cancelled) {
-          if (result.success) {
-            setData(result.data);
-          } else {
-            setError(result.error);
-          }
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err.message);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+  const fetchData = async () => {
+    try {
+      setError(null);
+      const result = await withErrorHandling(apiCall)();
+      if (result.success) {
+        setData(result.data);
+      } else {
+        setError(result.error);
       }
-    };
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    setLoading(true);
     fetchData();
-
-    return () => {
-      cancelled = true;
-    };
   }, dependencies);
 
-  return { data, loading, error };
+  return { data, loading, error, refetch: fetchData, setData };
 }
 
 // Specific hooks for common API calls

@@ -1,12 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Compass, Luggage, RotateCcw } from 'lucide-react';
+import { Compass, Luggage, RotateCcw, Loader2 } from 'lucide-react';
 import { useTrips } from '../hooks/useApi.js';
 import { tripTypes } from '../data/tripTypes.js';
 import { TripCard, typeFor } from '../components/home/TripsShowcase.jsx';
 import PageHeader from '../components/site/PageHeader.jsx';
 import NextStep from '../components/site/NextStep.jsx';
 
+const BATCH_SIZE = 12;
 const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
 const selectClass =
   'min-h-[44px] rounded-full border border-brand-dark/15 bg-white px-4 pr-9 text-sm font-medium text-brand-dark focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25';
@@ -28,6 +29,8 @@ export default function Trips() {
   const [params, setParams] = useSearchParams();
   const { data, loading } = useTrips();
   const months = useMemo(nextMonths, []);
+  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
+  const observerRef = useRef(null);
 
   const type = params.get('type') || typeFor({ category: params.get('category') || '' }) || '';
   const month = params.get('month') || '';
@@ -56,6 +59,38 @@ export default function Trips() {
         ? new Date(b.nextDeparture) - new Date(a.nextDeparture)
         : new Date(a.nextDeparture || '2999-01-01') - new Date(b.nextDeparture || '2999-01-01')
     );
+
+  // Reset pagination count on filter change
+  useEffect(() => {
+    setVisibleCount(BATCH_SIZE);
+  }, [type, month, group, view]);
+
+  const visibleTrips = useMemo(() => {
+    return shown.slice(0, visibleCount);
+  }, [shown, visibleCount]);
+
+  const hasMore = visibleCount < shown.length;
+
+  // Infinite scroll trigger
+  useEffect(() => {
+    if (!hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + BATCH_SIZE, shown.length));
+        }
+      },
+      { rootMargin: '250px' }
+    );
+
+    const target = observerRef.current;
+    if (target) observer.observe(target);
+
+    return () => {
+      if (target) observer.unobserve(target);
+    };
+  }, [hasMore, shown.length]);
 
   const filtersOn = Boolean(type || month || group);
   const planParams = new URLSearchParams({ plan: '1', ...(type ? { type } : {}) });
@@ -144,15 +179,24 @@ export default function Trips() {
         ) : shown.length ? (
           <>
             <p className="mb-5 text-sm text-brand-dark/60">
-              {shown.length} {view === 'past' ? 'past' : 'upcoming'} {shown.length === 1 ? 'trip' : 'trips'}
+              Showing {visibleTrips.length} of {shown.length} {view === 'past' ? 'past' : 'upcoming'} {shown.length === 1 ? 'trip' : 'trips'}
             </p>
             <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {shown.map((trip) => (
+              {visibleTrips.map((trip) => (
                 <li key={trip.id}>
                   <TripCard trip={trip} past={view === 'past'} />
                 </li>
               ))}
             </ul>
+
+            {hasMore && (
+              <div ref={observerRef} className="mt-10 flex flex-col items-center justify-center py-6">
+                <div className="flex items-center gap-2.5 rounded-full bg-brand-dark/[0.05] px-4 py-2 text-sm font-medium text-brand-dark/70">
+                  <Loader2 className="h-4 w-4 animate-spin text-brand-orange" />
+                  <span>Loading more departures...</span>
+                </div>
+              </div>
+            )}
           </>
         ) : (
           // Never a dead end: nothing published (or nothing matching) becomes an invitation to plan it.

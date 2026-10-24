@@ -27,7 +27,7 @@ function formatKES(val) {
   }).format(num);
 }
 
-export default function ReserveModal({ open, onClose, trip, tripTitle: fallbackTitle }) {
+export default function ReserveModal({ open, onClose, trip, tripTitle: fallbackTitle, onBookingSuccess }) {
   const focusTrapRef = useFocusTrap(open);
   const whatsappHref = useWhatsappLink();
 
@@ -102,6 +102,9 @@ export default function ReserveModal({ open, onClose, trip, tripTitle: fallbackT
           clearInterval(pollTimerRef.current);
           setBookingData(statusData);
           setStep('success');
+          if (typeof onBookingSuccess === 'function') {
+            onBookingSuccess(statusData);
+          }
         } else if (statusData.status === 'failed' || statusData.status === 'cancelled') {
           clearInterval(pollTimerRef.current);
           setErrorMsg('Payment was not completed or was cancelled on your phone.');

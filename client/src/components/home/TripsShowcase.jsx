@@ -55,6 +55,11 @@ export function TripCard({ trip, past }) {
             </>
           )}
         </span>
+        {!past && trip.spotsLeft != null && trip.spotsLeft <= 0 && (
+          <span className="absolute right-3 top-3 inline-flex items-center rounded-full bg-red-600 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-white shadow-md">
+            Sold Out
+          </span>
+        )}
       </div>
       <div className="flex flex-1 flex-col p-5">
         <h3 className="text-lg font-semibold leading-snug text-brand-dark">{trip.title}</h3>
@@ -91,6 +96,9 @@ export function TripCard({ trip, past }) {
                 ) : null}
                 {trip.spotsLeft > 0 && trip.spotsLeft <= 5 && (
                   <span className="ml-2 font-medium italic text-[#b5650d]">{trip.spotsLeft} spots left</span>
+                )}
+                {trip.spotsLeft != null && trip.spotsLeft <= 0 && (
+                  <span className="ml-2 font-semibold text-red-600">Sold out</span>
                 )}
               </p>
               <Link
