@@ -65,6 +65,7 @@ export default function StaysPreview({ stays }) {
                       From <strong className="text-base font-semibold text-brand-dark">KES {Number(stay.weekdayPrice || stay.priceFrom).toLocaleString()}</strong>
                       <span className="italic"> / night</span>
                       {stay.weekendPrice > 0 && <span className="block text-xs">Weekends KES {Number(stay.weekendPrice).toLocaleString()} / night</span>}
+                      {stay.holidayPrice > 0 && <span className="block text-xs">Public holidays KES {Number(stay.holidayPrice).toLocaleString()} / night</span>}
                     </p>
                   )}
                 </div>

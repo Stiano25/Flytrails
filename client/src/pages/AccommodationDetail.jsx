@@ -86,6 +86,7 @@ export default function AccommodationDetail() {
             <span>
               From <strong className="font-semibold text-brand-dark">{formatKes(item.weekdayPrice)}</strong> <span className="italic">/ night</span>
               {item.weekendPrice > 0 && <span className="ml-2">({formatKes(item.weekendPrice)} weekends)</span>}
+              {item.holidayPrice > 0 && <span className="ml-2">({formatKes(item.holidayPrice)} public holidays)</span>}
             </span>
           )}
         </p>

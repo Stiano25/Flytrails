@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { adminApi } from '../../data/api.js';
 import { X, Plus, Trash2, Upload } from 'lucide-react';
+import { getKenyanHolidays } from '../../utils/kenyanHolidays.js';
 
 const emptyAccommodation = {
   slug: '',
@@ -13,6 +14,8 @@ const emptyAccommodation = {
   weekdayPrice: '',
   weekendPrice: '',
   weekendDays: ['friday', 'saturday', 'sunday'],
+  holidayPrice: '',
+  holidayDates: [],
   amenities: [''],
   rating: '',
   gallery: [],
@@ -50,6 +53,8 @@ export default function AccommodationForm({ accommodation, onSave, onClose }) {
     weekdayPrice: String(accommodation.weekdayPrice ?? accommodation.priceFrom ?? ''),
     weekendPrice: accommodation.weekendPrice == null ? '' : String(accommodation.weekendPrice),
     weekendDays: accommodation.weekendDays?.length ? accommodation.weekendDays : ['friday', 'saturday', 'sunday'],
+    holidayPrice: accommodation.holidayPrice == null ? '' : String(accommodation.holidayPrice),
+    holidayDates: accommodation.holidayDates || [],
     rating: accommodation.rating == null ? '' : String(accommodation.rating),
     sortOrder: String(accommodation.sortOrder ?? 0),
     amenities: accommodation.amenities?.length ? accommodation.amenities : [''],
@@ -119,6 +124,10 @@ export default function AccommodationForm({ accommodation, onSave, onClose }) {
       alert('Select at least one weekend day when setting a weekend rate.');
       return;
     }
+    if (form.holidayDates.some((date) => !/^\d{4}-\d{2}-\d{2}$/.test(date))) {
+      alert('Additional holiday dates must use YYYY-MM-DD format.');
+      return;
+    }
     setSaving(true);
     try {
       const autoSlug = slugify(form.slug || form.title);
@@ -128,6 +137,8 @@ export default function AccommodationForm({ accommodation, onSave, onClose }) {
         priceFrom: Number(form.priceFrom) || 0,
         weekdayPrice: Number(form.weekdayPrice) || 0,
         weekendPrice: form.weekendPrice === '' ? null : Number(form.weekendPrice),
+        holidayPrice: form.holidayPrice === '' ? null : Number(form.holidayPrice),
+        holidayDates: form.holidayDates,
         rating: form.rating === '' ? null : Number(form.rating),
         amenities: form.amenities.filter(Boolean),
         gallery: form.gallery.filter(Boolean),
@@ -181,6 +192,10 @@ export default function AccommodationForm({ accommodation, onSave, onClose }) {
                 <input type="number" min="0" value={form.weekendPrice} onChange={(e) => set('weekendPrice', e.target.value)} className={inputClass()} placeholder="Optional" />
               </label>
               <label className="flex flex-col gap-1.5">
+                <FieldLabel>Public holiday nightly rate (KES)</FieldLabel>
+                <input type="number" min="0" value={form.holidayPrice} onChange={(e) => set('holidayPrice', e.target.value)} className={inputClass()} placeholder="Optional" />
+              </label>
+              <label className="flex flex-col gap-1.5">
                 <FieldLabel>Rating (0-5)</FieldLabel>
                 <input type="number" min="0" max="5" step="0.1" value={form.rating} onChange={(e) => set('rating', e.target.value)} className={inputClass()} />
               </label>
@@ -200,6 +215,19 @@ export default function AccommodationForm({ accommodation, onSave, onClose }) {
                   ))}
                 </div>
               </fieldset>
+              <label className="mt-4 flex flex-col gap-1.5">
+                <FieldLabel>Additional holiday dates</FieldLabel>
+                <input
+                  value={form.holidayDates.join(', ')}
+                  onChange={(e) => set('holidayDates', e.target.value.split(',').map((date) => date.trim()).filter(Boolean))}
+                  placeholder="YYYY-MM-DD, YYYY-MM-DD"
+                  className={inputClass()}
+                />
+                <span className="text-xs text-slate-500">
+                  Add annual Eid or Diwali dates here when officially confirmed.
+                  {/* {` ${new Date().getFullYear()}: ${getKenyanHolidays(new Date().getFullYear()).map((holiday) => holiday.name).join(', ')}.`} */}
+                </span>
+              </label>
               <label className="flex flex-col gap-1.5">
                 <FieldLabel>Booking WhatsApp (digits only)</FieldLabel>
                 <input

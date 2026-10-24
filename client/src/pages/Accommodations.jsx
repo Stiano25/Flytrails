@@ -75,6 +75,7 @@ export default function Accommodations() {
                         <p className="text-sm text-brand-dark/60">
                           From <strong className="text-base font-semibold text-brand-dark">{formatKes(item.weekdayPrice)}</strong> / night
                           {item.weekendPrice > 0 && <span className="block text-xs">Weekends {formatKes(item.weekendPrice)} / night</span>}
+                          {item.holidayPrice > 0 && <span className="block text-xs">Public holidays {formatKes(item.holidayPrice)} / night</span>}
                         </p>
                       ) : (
                         <span />
