@@ -20,11 +20,6 @@ function nextMonths() {
   });
 }
 
-/**
- * All trips, filtered the same way the home finder asks: what kind of trip, which month, how many people.
- * Reads the finder's parameters (?type=safari&month=2026-10&group=4, and older ?category=Hiking links),
- * splits upcoming departures from past trips, and never dead-ends: with no match it offers to plan the trip.
- */
 export default function Trips() {
   const [params, setParams] = useSearchParams();
   const { data, loading } = useTrips();
@@ -179,24 +174,15 @@ export default function Trips() {
         ) : shown.length ? (
           <>
             <p className="mb-5 text-sm text-brand-dark/60">
-              Showing {visibleTrips.length} of {shown.length} {view === 'past' ? 'past' : 'upcoming'} {shown.length === 1 ? 'trip' : 'trips'}
+              {shown.length} {view === 'past' ? 'past' : 'upcoming'} {shown.length === 1 ? 'trip' : 'trips'}
             </p>
             <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {visibleTrips.map((trip) => (
+              {shown.map((trip) => (
                 <li key={trip.id}>
                   <TripCard trip={trip} past={view === 'past'} />
                 </li>
               ))}
             </ul>
-
-            {hasMore && (
-              <div ref={observerRef} className="mt-10 flex flex-col items-center justify-center py-6">
-                <div className="flex items-center gap-2.5 rounded-full bg-brand-dark/[0.05] px-4 py-2 text-sm font-medium text-brand-dark/70">
-                  <Loader2 className="h-4 w-4 animate-spin text-brand-orange" />
-                  <span>Loading more departures...</span>
-                </div>
-              </div>
-            )}
           </>
         ) : (
           // Never a dead end: nothing published (or nothing matching) becomes an invitation to plan it.
