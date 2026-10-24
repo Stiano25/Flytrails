@@ -1,6 +1,3 @@
--- Structured trip dates and accommodation pricing.
--- Existing next_departure and price_from fields remain for compatibility.
-
 alter table public.trips
   add column if not exists date_mode text not null default 'single'
     check (date_mode in ('single', 'range')),
