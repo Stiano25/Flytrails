@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 const CONTACT_TO_DEFAULT = 'info@flytrailstravels.com';
 
@@ -16,16 +16,20 @@ function clamp(str, max) {
 }
 
 /**
- * Sends a contact form message to the support inbox via Zoho SMTP using Nodemailer.
+ * Sends a contact form message to the support inbox via Resend.
  * @returns {{ ok: true }} | {{ ok: false, status: number, error: string }}
  */
 export async function sendContactMail({ name, email, phone, subject, message }) {
-  const zohoEmail = process.env.ZOHO_EMAIL;
-  const zohoPassword = process.env.ZOHO_APP_PASSWORD;
-  const to = (process.env.CONTACT_MAIL_TO || CONTACT_TO_DEFAULT).trim();
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.RESEND_FROM || 'Flytrails <onboarding@resend.dev>';
+  const to = (
+    process.env.ADMIN_NOTIFICATION_EMAIL ||
+    process.env.CONTACT_MAIL_TO ||
+    CONTACT_TO_DEFAULT
+  ).trim();
 
-  if (!zohoEmail || !zohoPassword || zohoPassword === 'your_zoho_app_password') {
-    console.error('[contact] ZOHO_EMAIL or ZOHO_APP_PASSWORD is not set; cannot send email.');
+  if (!apiKey) {
+    console.error('[contact] RESEND_API_KEY is not set; cannot send email.');
     return { ok: false, status: 503, error: 'Email delivery is not configured on the server.' };
   }
 
@@ -46,35 +50,37 @@ export async function sendContactMail({ name, email, phone, subject, message }) 
     .join('\n');
 
   const html = `
-    <p><strong>Name:</strong> ${escapeHtml(safeName)}</p>
-    <p><strong>Email:</strong> ${escapeHtml(safeEmail)}</p>
-    ${safePhone ? `<p><strong>Phone:</strong> ${escapeHtml(safePhone)}</p>` : ''}
-    <hr />
-    <pre style="white-space:pre-wrap;font-family:inherit">${escapeHtml(safeMessage)}</pre>
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1e293b;">
+      <h2 style="color: #0f172a; margin-bottom: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px;">New Contact Form Message</h2>
+      <p style="margin: 6px 0;"><strong>Name:</strong> ${escapeHtml(safeName)}</p>
+      <p style="margin: 6px 0;"><strong>Email:</strong> <a href="mailto:${escapeHtml(safeEmail)}" style="color: #ea580c;">${escapeHtml(safeEmail)}</a></p>
+      ${safePhone ? `<p style="margin: 6px 0;"><strong>Phone:</strong> ${escapeHtml(safePhone)}</p>` : ''}
+      <div style="margin-top: 20px; padding: 16px; background-color: #f8fafc; border-radius: 8px; border-left: 4px solid #ea580c;">
+        <p style="margin: 0; font-weight: 600; color: #475569; font-size: 13px; text-transform: uppercase;">Message:</p>
+        <p style="margin-top: 8px; white-space: pre-wrap; line-height: 1.6;">${escapeHtml(safeMessage)}</p>
+      </div>
+    </div>
   `.trim();
 
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.zoho.com', 
-    port: 465,
-    secure: true, 
-    auth: {
-      user: zohoEmail,
-      pass: zohoPassword,
-    },
-  });
-
   try {
-    await transporter.sendMail({
-      from: `"Flytrails Website" <${zohoEmail}>`, 
+    const resend = new Resend(apiKey);
+    const { error } = await resend.emails.send({
+      from,
       to,
       replyTo: safeEmail,
       subject: `Website contact: ${safeSubject}`,
       text,
       html,
     });
+
+    if (error) {
+      console.error('[contact] Resend API error:', error);
+      return { ok: false, status: 502, error: error.message || 'Could not send your message.' };
+    }
+
     return { ok: true };
   } catch (error) {
-    console.error('[contact] Nodemailer error:', error);
+    console.error('[contact] Resend error:', error);
     return { ok: false, status: 502, error: 'Could not send your message. Please try again later or email us directly.' };
   }
 }

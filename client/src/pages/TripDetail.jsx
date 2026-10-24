@@ -257,7 +257,7 @@ export default function TripDetail() {
         primary={{ to: '/custom-tours', label: 'Plan it privately' }}
       />
 
-      <ReserveModal open={reserveOpen} onClose={() => setReserveOpen(false)} tripTitle={trip.title} />
+      <ReserveModal open={reserveOpen} onClose={() => setReserveOpen(false)} trip={trip} tripTitle={trip.title} />
     </div>
   );
 }

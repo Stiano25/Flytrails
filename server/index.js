@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { sendContactMail } from './contactMail.js';
 import { adminRouter } from './adminRoutes.js';
+import { mpesaRouter } from './mpesaRoutes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const __root = path.join(__dirname, '..');
@@ -18,6 +19,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.use('/api/admin', adminRouter);
+app.use('/api/mpesa', mpesaRouter);
 
 app.post('/api/contact', async (req, res) => {
   const { name, email, phone, subject, message } = req.body || {};

@@ -110,6 +110,26 @@ function mapCustomerReview(row) {
   };
 }
 
+function mapBooking(row) {
+  return {
+    id: row.id,
+    ticketNumber: row.ticket_number,
+    tripId: row.trip_id,
+    tripTitle: row.trip_title,
+    tripDeparture: row.trip_departure,
+    customerName: row.customer_name,
+    customerEmail: row.customer_email,
+    customerPhone: row.customer_phone,
+    slots: row.slots,
+    amount: row.amount,
+    mpesaCheckoutId: row.mpesa_checkout_id,
+    mpesaReceipt: row.mpesa_receipt,
+    paymentStatus: row.payment_status,
+    createdAt: row.created_at,
+    paidAt: row.paid_at,
+  };
+}
+
 // ── API ─────────────────────────────────────────────────────────
 export const api = {
   async getTrips(filters = {}) {
@@ -309,6 +329,28 @@ export const api = {
       throw new Error(data.error || 'Failed to send message');
     }
     return { success: true, message: data.message || 'Message sent successfully' };
+  },
+
+  async initiateMpesaBooking({ tripId, customerName, customerEmail, customerPhone, slots }) {
+    const res = await fetch('/api/mpesa/pay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tripId, customerName, customerEmail, customerPhone, slots }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to initiate M-Pesa payment');
+    }
+    return data;
+  },
+
+  async getBookingStatus(bookingId) {
+    const res = await fetch(`/api/mpesa/status/${bookingId}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to fetch booking status');
+    }
+    return data;
   },
 };
 
@@ -662,6 +704,32 @@ export const adminApi = {
       .from('site_content')
       .update({ value })
       .eq('key', key);
+    if (error) throw new Error(error.message);
+  },
+
+  // --- Bookings ---
+  async getAllBookings() {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data || []).map(mapBooking);
+  },
+
+  async updateBookingStatus(id, payment_status) {
+    const { data, error } = await supabase
+      .from('bookings')
+      .update({ payment_status })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return mapBooking(data);
+  },
+
+  async deleteBooking(id) {
+    const { error } = await supabase.from('bookings').delete().eq('id', id);
     if (error) throw new Error(error.message);
   },
 };
