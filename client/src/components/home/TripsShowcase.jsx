@@ -6,6 +6,12 @@ const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outlin
 
 const formatDate = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 const monthYear = (iso) => new Date(iso).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+const tripDateLabel = (trip) => {
+  const start = trip.dateStart || trip.nextDeparture;
+  if (!start) return 'Dates on request';
+  if (trip.dateMode === 'range' && trip.dateEnd) return `${formatDate(start)} - ${formatDate(trip.dateEnd)}`;
+  return formatDate(start);
+};
 
 const CATEGORY_HINTS = [
   ['hiking', /hik|trek|mountain|climb/],
@@ -51,7 +57,7 @@ export function TripCard({ trip, past }) {
           ) : (
             <>
               <CalendarDays className="h-3.5 w-3.5" aria-hidden />
-              {trip.nextDeparture ? formatDate(trip.nextDeparture) : 'Dates on request'}
+              {tripDateLabel(trip)}
             </>
           )}
         </span>

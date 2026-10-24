@@ -52,7 +52,7 @@ mpesaRouter.post('/pay', async (req, res) => {
     // 1. Fetch trip details
     const { data: trip, error: tripErr } = await supabase
       .from('trips')
-      .select('id, title, price, spots_left, is_active, next_departure')
+      .select('id, title, price, spots_left, is_active, next_departure, date_mode, date_start, date_end')
       .eq('id', tripId)
       .maybeSingle();
 
@@ -87,7 +87,9 @@ mpesaRouter.post('/pay', async (req, res) => {
         ticket_number: ticketNumber,
         trip_id: trip.id,
         trip_title: trip.title,
-        trip_departure: trip.next_departure || null,
+        trip_departure: trip.date_mode === 'range' && trip.date_end
+          ? `${trip.date_start || trip.next_departure || ''} - ${trip.date_end}`
+          : trip.date_start || trip.next_departure || null,
         customer_name: String(customerName).trim(),
         customer_email: String(customerEmail).trim().toLowerCase(),
         customer_phone: validPhone,

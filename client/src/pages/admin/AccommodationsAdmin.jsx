@@ -95,7 +95,7 @@ export default function AccommodationsAdmin() {
                     </div>
                   </td>
                   <td className="hidden px-4 py-3 text-slate-600 md:table-cell">{item.location}</td>
-                  <td className="hidden px-4 py-3 text-slate-600 lg:table-cell">{formatKes(item.priceFrom)}</td>
+                  <td className="hidden px-4 py-3 text-slate-600 lg:table-cell">{formatKes(item.weekdayPrice || item.priceFrom)}</td>
                   <td className="hidden px-4 py-3 text-slate-600 lg:table-cell">{item.rating ?? '-'}</td>
                   <td className="px-4 py-3">
                     {item.isActive ? (

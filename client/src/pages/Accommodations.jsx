@@ -71,9 +71,10 @@ export default function Accommodations() {
                       </ul>
                     ) : null}
                     <div className="mt-auto flex items-center justify-between gap-3 pt-5">
-                      {item.priceFrom > 0 ? (
+                      {item.weekdayPrice > 0 ? (
                         <p className="text-sm text-brand-dark/60">
-                          From <strong className="text-base font-semibold text-brand-dark">{formatKes(item.priceFrom)}</strong>
+                          From <strong className="text-base font-semibold text-brand-dark">{formatKes(item.weekdayPrice)}</strong> / night
+                          {item.weekendPrice > 0 && <span className="block text-xs">Weekends {formatKes(item.weekendPrice)} / night</span>}
                         </p>
                       ) : (
                         <span />

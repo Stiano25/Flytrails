@@ -11,6 +11,12 @@ import NextStep from '../components/site/NextStep.jsx';
 const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
 const formatKes = (n) => new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', maximumFractionDigits: 0 }).format(n || 0);
 const longDate = (iso) => new Date(iso).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+const tripDateLabel = (trip) => {
+  const start = trip.dateStart || trip.nextDeparture;
+  if (!start) return 'Dates on request';
+  if (trip.dateMode === 'range' && trip.dateEnd) return `${longDate(start)} - ${longDate(trip.dateEnd)}`;
+  return longDate(start);
+};
 
 function Section({ title, accent, children }) {
   return (
@@ -50,14 +56,14 @@ export default function TripDetail() {
   if (!loading && (error || !trip)) return <Navigate to="/404" replace />;
   if (loading) return <div className="h-[70vh] animate-pulse bg-brand-bg" aria-hidden />;
 
-  const past = trip.nextDeparture && isTripExpired(trip.nextDeparture);
+  const past = (trip.dateEnd || trip.nextDeparture) && isTripExpired(trip.dateEnd || trip.nextDeparture);
   const type = typeFor(trip);
   const similarHref = type ? `/?plan=1&type=${type}` : '/?plan=1';
   const askHref = `${whatsapp.split('?')[0]}?text=${encodeURIComponent(`Hi Flytrails, I have a question about ${trip.title}.`)}`;
   const seatsPct = trip.spotsTotal ? Math.round((trip.spotsLeft / trip.spotsTotal) * 100) : 0;
 
   const facts = [
-    { Icon: CalendarDays, label: past ? 'Ran on' : 'Departs', value: trip.nextDeparture ? longDate(trip.nextDeparture) : 'Dates on request' },
+    { Icon: CalendarDays, label: past ? 'Ran on' : trip.dateMode === 'range' ? 'Available' : 'Departs', value: tripDateLabel(trip) },
     { Icon: Clock, label: 'Duration', value: trip.duration },
     { Icon: Users, label: 'Group', value: trip.spotsTotal ? `Up to ${trip.spotsTotal}` : null },
     { Icon: Gauge, label: 'Difficulty', value: trip.difficulty },

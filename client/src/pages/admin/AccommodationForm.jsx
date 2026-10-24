@@ -10,6 +10,9 @@ const emptyAccommodation = {
   description: '',
   image: '',
   priceFrom: '',
+  weekdayPrice: '',
+  weekendPrice: '',
+  weekendDays: ['friday', 'saturday', 'sunday'],
   amenities: [''],
   rating: '',
   gallery: [],
@@ -44,6 +47,9 @@ export default function AccommodationForm({ accommodation, onSave, onClose }) {
   const [form, setForm] = useState(() => accommodation ? {
     ...accommodation,
     priceFrom: String(accommodation.priceFrom ?? ''),
+    weekdayPrice: String(accommodation.weekdayPrice ?? accommodation.priceFrom ?? ''),
+    weekendPrice: accommodation.weekendPrice == null ? '' : String(accommodation.weekendPrice),
+    weekendDays: accommodation.weekendDays?.length ? accommodation.weekendDays : ['friday', 'saturday', 'sunday'],
     rating: accommodation.rating == null ? '' : String(accommodation.rating),
     sortOrder: String(accommodation.sortOrder ?? 0),
     amenities: accommodation.amenities?.length ? accommodation.amenities : [''],
@@ -109,6 +115,10 @@ export default function AccommodationForm({ accommodation, onSave, onClose }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (form.weekendPrice !== '' && form.weekendDays.length === 0) {
+      alert('Select at least one weekend day when setting a weekend rate.');
+      return;
+    }
     setSaving(true);
     try {
       const autoSlug = slugify(form.slug || form.title);
@@ -116,6 +126,8 @@ export default function AccommodationForm({ accommodation, onSave, onClose }) {
         ...form,
         slug: autoSlug,
         priceFrom: Number(form.priceFrom) || 0,
+        weekdayPrice: Number(form.weekdayPrice) || 0,
+        weekendPrice: form.weekendPrice === '' ? null : Number(form.weekendPrice),
         rating: form.rating === '' ? null : Number(form.rating),
         amenities: form.amenities.filter(Boolean),
         gallery: form.gallery.filter(Boolean),
@@ -161,13 +173,33 @@ export default function AccommodationForm({ accommodation, onSave, onClose }) {
                 <input value={form.location} onChange={(e) => set('location', e.target.value)} required className={inputClass()} />
               </label>
               <label className="flex flex-col gap-1.5">
-                <FieldLabel>Price from (KES)</FieldLabel>
-                <input type="number" min="0" value={form.priceFrom} onChange={(e) => set('priceFrom', e.target.value)} className={inputClass()} />
+                <FieldLabel>Weekday nightly rate (KES)</FieldLabel>
+                <input type="number" min="0" value={form.weekdayPrice} onChange={(e) => { set('weekdayPrice', e.target.value); set('priceFrom', e.target.value); }} className={inputClass()} />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <FieldLabel>Weekend nightly rate (KES)</FieldLabel>
+                <input type="number" min="0" value={form.weekendPrice} onChange={(e) => set('weekendPrice', e.target.value)} className={inputClass()} placeholder="Optional" />
               </label>
               <label className="flex flex-col gap-1.5">
                 <FieldLabel>Rating (0-5)</FieldLabel>
                 <input type="number" min="0" max="5" step="0.1" value={form.rating} onChange={(e) => set('rating', e.target.value)} className={inputClass()} />
               </label>
+              <fieldset className="mt-4">
+                <legend className="text-xs font-semibold uppercase tracking-wider text-slate-500">Weekend days</legend>
+                <div className="mt-2 flex flex-wrap gap-4">
+                  {['friday', 'saturday', 'sunday'].map((day) => (
+                    <label key={day} className="flex items-center gap-2 text-sm capitalize text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={form.weekendDays.includes(day)}
+                        onChange={(e) => set('weekendDays', e.target.checked ? [...form.weekendDays, day] : form.weekendDays.filter((d) => d !== day))}
+                        className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/40"
+                      />
+                      {day}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
               <label className="flex flex-col gap-1.5">
                 <FieldLabel>Booking WhatsApp (digits only)</FieldLabel>
                 <input

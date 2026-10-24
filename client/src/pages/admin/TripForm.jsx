@@ -17,7 +17,7 @@ const DIFFICULTIES = ['Easy', 'Moderate', 'Hard'];
 const emptyTrip = {
   slug: '', title: '', location: '', category: 'Hiking', duration: '',
   price: '', spotsTotal: 20, spotsLeft: 20, difficulty: 'Easy',
-  nextDeparture: '', description: '', image: '',
+  dateMode: 'single', dateStart: '', dateEnd: '', nextDeparture: '', description: '', image: '',
   highlights: [''], itinerary: [{ day: 1, title: '', description: '' }],
   included: [''], notIncluded: [''], faqs: [{ question: '', answer: '' }],
   isActive: true, sortOrder: 0,
@@ -42,6 +42,9 @@ export default function TripForm({ trip, onSave, onClose }) {
     spotsTotal: String(trip.spotsTotal),
     spotsLeft: String(trip.spotsLeft),
     sortOrder: String(trip.sortOrder || 0),
+    dateMode: trip.dateMode || (trip.nextDeparture ? 'single' : 'single'),
+    dateStart: trip.dateStart || trip.nextDeparture || '',
+    dateEnd: trip.dateEnd || '',
     highlights: trip.highlights?.length ? trip.highlights : [''],
     included: trip.included?.length ? trip.included : [''],
     notIncluded: trip.notIncluded?.length ? trip.notIncluded : [''],
@@ -85,6 +88,10 @@ export default function TripForm({ trip, onSave, onClose }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (form.dateMode === 'range' && form.dateStart && form.dateEnd && form.dateEnd < form.dateStart) {
+      alert('The end date must be on or after the start date.');
+      return;
+    }
     setSaving(true);
     try {
       const saved = await adminApi.upsertTrip({
@@ -93,6 +100,7 @@ export default function TripForm({ trip, onSave, onClose }) {
         spotsTotal: Number(form.spotsTotal),
         spotsLeft: Number(form.spotsLeft),
         sortOrder: Number(form.sortOrder),
+        nextDeparture: form.dateStart || '',
         highlights: form.highlights.filter(Boolean),
         included: form.included.filter(Boolean),
         notIncluded: form.notIncluded.filter(Boolean),
@@ -164,10 +172,23 @@ export default function TripForm({ trip, onSave, onClose }) {
                 <FieldLabel>Spots left</FieldLabel>
                 <input type="number" value={form.spotsLeft} onChange={(e) => set('spotsLeft', e.target.value)} min="0" className={inputClass()} />
               </label>
+              <div className="flex flex-col gap-1.5">
+                <FieldLabel>Trip dates</FieldLabel>
+                <select value={form.dateMode} onChange={(e) => set('dateMode', e.target.value)} className={inputClass()}>
+                  <option value="single">Single departure date</option>
+                  <option value="range">Date range</option>
+                </select>
+              </div>
               <label className="flex flex-col gap-1.5">
-                <FieldLabel>Next departure</FieldLabel>
-                <input type="date" value={form.nextDeparture} onChange={(e) => set('nextDeparture', e.target.value)} className={inputClass()} />
+                <FieldLabel>{form.dateMode === 'range' ? 'Available from' : 'Departure date'}</FieldLabel>
+                <input type="date" value={form.dateStart} onChange={(e) => { set('dateStart', e.target.value); if (form.dateMode === 'single') set('nextDeparture', e.target.value); }} className={inputClass()} />
               </label>
+              {form.dateMode === 'range' && (
+                <label className="flex flex-col gap-1.5">
+                  <FieldLabel>Available until</FieldLabel>
+                  <input type="date" min={form.dateStart || undefined} value={form.dateEnd} onChange={(e) => set('dateEnd', e.target.value)} className={inputClass()} />
+                </label>
+              )}
               <label className="flex flex-col gap-1.5">
                 <FieldLabel>Sort order</FieldLabel>
                 <input type="number" value={form.sortOrder} onChange={(e) => set('sortOrder', e.target.value)} min="0" className={inputClass()} />

@@ -82,9 +82,10 @@ export default function AccommodationDetail() {
               {item.rating} / 5
             </span>
           ) : null}
-          {item.priceFrom > 0 && (
+          {item.weekdayPrice > 0 && (
             <span>
-              From <strong className="font-semibold text-brand-dark">{formatKes(item.priceFrom)}</strong> <span className="italic">/ night</span>
+              From <strong className="font-semibold text-brand-dark">{formatKes(item.weekdayPrice)}</strong> <span className="italic">/ night</span>
+              {item.weekendPrice > 0 && <span className="ml-2">({formatKes(item.weekendPrice)} weekends)</span>}
             </span>
           )}
         </p>

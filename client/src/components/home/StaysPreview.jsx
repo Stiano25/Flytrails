@@ -60,10 +60,11 @@ export default function StaysPreview({ stays }) {
                   {(stay.shortDescription || stay.description) && (
                     <p className="mt-3 line-clamp-2 text-sm text-brand-dark/70">{stay.shortDescription || stay.description}</p>
                   )}
-                  {stay.priceFrom > 0 && (
+                  {(stay.weekdayPrice || stay.priceFrom) > 0 && (
                     <p className="mt-auto pt-4 text-sm text-brand-dark/60">
-                      From <strong className="text-base font-semibold text-brand-dark">KES {Number(stay.priceFrom).toLocaleString()}</strong>
+                      From <strong className="text-base font-semibold text-brand-dark">KES {Number(stay.weekdayPrice || stay.priceFrom).toLocaleString()}</strong>
                       <span className="italic"> / night</span>
+                      {stay.weekendPrice > 0 && <span className="block text-xs">Weekends KES {Number(stay.weekendPrice).toLocaleString()} / night</span>}
                     </p>
                   )}
                 </div>
