@@ -74,9 +74,10 @@ export async function getAccessToken() {
   });
 
   if (!res.ok) {
-    const errorText = await res.text();
-    console.error('[mpesa] OAuth error:', res.status, errorText);
-    throw new Error(`Failed to authenticate with M-Pesa (${res.status}): ${errorText}`);
+    const errorText = (await res.text()).trim();
+    const detail = errorText || 'Daraja rejected the credentials or the app is not enabled for this environment.';
+    console.error('[mpesa] OAuth error:', res.status, detail);
+    throw new Error(`Failed to authenticate with M-Pesa (${res.status}): ${detail}`);
   }
 
   const data = await res.json();
