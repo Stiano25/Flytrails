@@ -27,7 +27,7 @@ export async function sendBookingConfirmation(booking) {
     return { ok: false, error: 'RESEND_API_KEY not configured' };
   }
 
-  const from = process.env.RESEND_FROM || 'Flytrails <no-reply@info.flytrailstravels.com>';
+  const from = process.env.RESEND_FROM || 'Flytrailstravels <no-reply@info.flytrailstravels.com>';
   const resend = new Resend(apiKey);
 
   const formattedAmount = formatKES(booking.amount);
@@ -38,7 +38,7 @@ export async function sendBookingConfirmation(booking) {
     <html>
     <head>
       <meta charset="utf-8">
-      <title>Booking Confirmed - Flytrails</title>
+      <title>Booking Confirmed - Flytrailstravels</title>
     </head>
     <body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
       <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f1f5f9; padding: 32px 16px;">
@@ -68,7 +68,7 @@ export async function sendBookingConfirmation(booking) {
                 <td style="padding: 12px 28px;">
                   <p style="font-size: 16px; line-height: 1.5; margin: 0 0 12px;">Hi <strong>${escapeHtml(booking.customer_name)}</strong>,</p>
                   <p style="font-size: 15px; line-height: 1.6; color: #475569; margin: 0;">
-                    Thank you for booking with Flytrails! We have received your payment via M-Pesa. Here are your booking and ticket details:
+                    Thank you for booking with Flytrailstravels! We have received your payment via M-Pesa. Here are your booking and ticket details:
                   </p>
                 </td>
               </tr>
@@ -106,7 +106,7 @@ export async function sendBookingConfirmation(booking) {
                 <td style="padding: 0 28px 28px;">
                   <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 14px 16px; border-radius: 6px;">
                     <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #1e40af;">
-                      <strong>Note:</strong> Please save this email or keep your ticket number handy. Our team will reach out on WhatsApp/Phone (<a href="tel:${escapeHtml(booking.customer_phone)}" style="color: #1e40af;">${escapeHtml(booking.customer_phone)}</a>) with final departure details, meetup point, and packing list.
+                      <strong>Note:</strong> Please save this email or keep your ticket number handy. Our team will reach out on WhatsApp/Phone (<a href="tel:${escapeHtml(booking.customer_phone)}" style="color: #1e40af;">${escapeHtml(booking.customer_phone)}</a>) with final departure details, meetup point and packing list.
                     </p>
                   </div>
                 </td>
@@ -166,7 +166,7 @@ export async function sendAdminBookingAlert(booking) {
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1e293b;">
       <h2 style="color: #0f172a; margin-bottom: 8px;">🎉 New Paid Booking Received!</h2>
-      <p style="color: #64748b; margin-top: 0;">A customer has just completed payment via M-Pesa STK Push.</p>
+      <p style="color: #64748b; margin-top: 0;">A customer has just completed payment via M-Pesa.</p>
 
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
         <tr>
@@ -199,15 +199,15 @@ export async function sendAdminBookingAlert(booking) {
         </tr>
         <tr>
           <td style="padding: 6px 0; color: #64748b; font-size: 14px;">M-Pesa Receipt:</td>
-          <td style="padding: 6px 0; font-family: monospace; font-weight: 600; color: #0f172a; font-size: 14px;">${escapeHtml(booking.mpesa_receipt || 'N/A')}</td>
+          <td style="padding: 6px 0; font-family: monospace; font-weight: 600; color: #0f172a; font-size: 14px;">${escapeHtml(booking.mpesa_receipt || "N/A")}</td>
         </tr>
       </table>
 
       <p style="margin-top: 24px; font-size: 13px; color: #94a3b8; text-align: center;">
-        View all bookings in the <a href="https://flytrails.vercel.app/admin/bookings" style="color: #f97316;">Admin Dashboard &rarr;</a>
+        View all bookings in the <a href="https://flytrailstravels.com/admin/bookings" style="color: #f97316;">Admin Dashboard &rarr;</a>
       </p>
     </div>
-  `.trim();
+  `.trim()
 
   try {
     const { error } = await resend.emails.send({
