@@ -21,7 +21,7 @@ function clamp(str, max) {
  */
 export async function sendContactMail({ name, email, phone, subject, message }) {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM || 'Flytrails <onboarding@resend.dev>';
+  const from = process.env.RESEND_FROM || 'Flytrails <no-reply@info.flytrailstravels.com>';
   const to = (
     process.env.ADMIN_NOTIFICATION_EMAIL ||
     process.env.CONTACT_MAIL_TO ||
