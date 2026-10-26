@@ -48,7 +48,7 @@ export async function sendBookingConfirmation(booking) {
               <!-- Header -->
               <tr>
                 <td style="background-color: #0f172a; padding: 32px 28px; text-align: center;">
-                  <h1 style="color: #f97316; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">FLYTRAILS</h1>
+                  <h1 style="color: #f97316; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">FLYTRAILSTRAVELS</h1>
                   <p style="color: #94a3b8; margin: 6px 0 0; font-size: 14px;">Your Adventure is Confirmed!</p>
                 </td>
               </tr>
