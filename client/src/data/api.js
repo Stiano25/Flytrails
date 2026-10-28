@@ -138,6 +138,45 @@ function mapBooking(row) {
   };
 }
 
+function mapCustomTripRequest(row) {
+  return {
+    id: row.id,
+    referenceNumber: row.reference_number,
+    customerName: row.customer_name,
+    customerEmail: row.customer_email,
+    customerPhone: row.customer_phone,
+    tripType: row.trip_type || '',
+    destination: row.destination || '',
+    travelDates: row.travel_dates || '',
+    adults: row.adults,
+    children: row.children,
+    budget: row.budget || '',
+    specialRequests: row.special_requests || '',
+    status: row.status,
+    assignedTo: row.assigned_to,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    quotes: (row.custom_trip_quotes || []).map((quote) => ({
+      id: quote.id,
+      version: quote.version,
+      validityDate: quote.validity_date,
+      itinerary: quote.itinerary || '',
+      inclusions: quote.inclusions || '',
+      exclusions: quote.exclusions || '',
+      terms: quote.terms || '',
+      total: Number(quote.total) || 0,
+      createdAt: quote.created_at,
+      items: (quote.custom_trip_quote_items || []).map((item) => ({
+        id: item.id,
+        description: item.description,
+        quantity: Number(item.quantity) || 1,
+        unitPrice: Number(item.unit_price) || 0,
+        sortOrder: item.sort_order || 0,
+      })),
+    })),
+  };
+}
+
 // ── API ─────────────────────────────────────────────────────────
 export const api = {
   async getTrips(filters = {}) {
@@ -337,6 +376,35 @@ export const api = {
       throw new Error(data.error || 'Failed to send message');
     }
     return { success: true, message: data.message || 'Message sent successfully' };
+  },
+
+  async submitCustomTrip(form) {
+    const name = String(form.name || '').trim();
+    const email = String(form.email || '').trim().toLowerCase();
+    const phone = String(form.phone || '').trim();
+    const adults = Number(form.adults);
+    const children = Number(form.children || 0);
+    if (name.length < 2) throw new Error('Please enter your full name.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Please enter a valid email address.');
+    if (phone.length < 7) throw new Error('Please enter a valid WhatsApp number.');
+    if (!Number.isInteger(adults) || adults < 1) throw new Error('Please enter at least one adult traveler.');
+    if (!Number.isInteger(children) || children < 0) throw new Error('Children count cannot be negative.');
+    const referenceNumber = `CT-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
+    const { error } = await supabase.from('custom_trip_requests').insert({
+      reference_number: referenceNumber,
+      customer_name: name,
+      customer_email: email,
+      customer_phone: phone,
+      trip_type: form.tripType || null,
+      destination: String(form.destination || '').trim() || null,
+      travel_dates: String(form.travelDates || '').trim() || null,
+      adults,
+      children,
+      budget: form.budget || null,
+      special_requests: String(form.specialRequests || '').trim() || null,
+    });
+    if (error) throw new Error(error.message);
+    return { success: true, referenceNumber };
   },
 
   async initiateMpesaBooking({ tripId, customerName, customerEmail, customerPhone, slots }) {
@@ -747,6 +815,63 @@ export const adminApi = {
   async deleteBooking(id) {
     const { error } = await supabase.from('bookings').delete().eq('id', id);
     if (error) throw new Error(error.message);
+  },
+
+  async getCustomTripRequests() {
+    const { data, error } = await supabase
+      .from('custom_trip_requests')
+      .select('*, custom_trip_quotes(*, custom_trip_quote_items(*))')
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data || []).map(mapCustomTripRequest);
+  },
+
+  async updateCustomTripRequest(id, changes) {
+    const row = {};
+    if (changes.status) row.status = changes.status;
+    if (changes.assignedTo !== undefined) row.assigned_to = changes.assignedTo || null;
+    const { data, error } = await supabase
+      .from('custom_trip_requests')
+      .update(row)
+      .eq('id', id)
+      .select('*, custom_trip_quotes(*, custom_trip_quote_items(*))')
+      .single();
+    if (error) throw new Error(error.message);
+    return mapCustomTripRequest(data);
+  },
+
+  async saveCustomTripQuote(requestId, quote, items) {
+    const { data: existing, error: existingError } = await supabase
+      .from('custom_trip_quotes')
+      .select('version')
+      .eq('request_id', requestId)
+      .order('version', { ascending: false })
+      .limit(1);
+    if (existingError) throw new Error(existingError.message);
+    const version = (existing?.[0]?.version || 0) + 1;
+    const total = items.reduce((sum, item) => sum + Number(item.quantity || 0) * Number(item.unitPrice || 0), 0);
+    const { data: saved, error } = await supabase.from('custom_trip_quotes').insert({
+      request_id: requestId,
+      version,
+      validity_date: quote.validityDate || null,
+      itinerary: quote.itinerary || null,
+      inclusions: quote.inclusions || null,
+      exclusions: quote.exclusions || null,
+      terms: quote.terms || null,
+      total,
+    }).select().single();
+    if (error) throw new Error(error.message);
+    const { error: itemsError } = await supabase.from('custom_trip_quote_items').insert(
+      items.map((item, index) => ({
+        quote_id: saved.id,
+        description: String(item.description || '').trim(),
+        quantity: Number(item.quantity) || 1,
+        unit_price: Number(item.unitPrice) || 0,
+        sort_order: index,
+      })),
+    );
+    if (itemsError) throw new Error(itemsError.message);
+    return { ...saved, total, version, items };
   },
 };
 

@@ -33,6 +33,7 @@ const Dashboard = lazy(() => import('./pages/admin/Dashboard.jsx'));
 const GalleryAdmin = lazy(() => import('./pages/admin/GalleryAdmin.jsx'));
 const TripsAdmin = lazy(() => import('./pages/admin/TripsAdmin.jsx'));
 const BookingsAdmin = lazy(() => import('./pages/admin/BookingsAdmin.jsx'));
+const CustomTripRequestsAdmin = lazy(() => import('./pages/admin/CustomTripRequestsAdmin.jsx'));
 const AccommodationsAdmin = lazy(() => import('./pages/admin/AccommodationsAdmin.jsx'));
 const BlogAdmin = lazy(() => import('./pages/admin/BlogAdmin.jsx'));
 const SiteContent = lazy(() => import('./pages/admin/SiteContent.jsx'));
@@ -93,6 +94,7 @@ export default function App() {
             <Route path="gallery" element={<Suspense fallback={<PageLoader />}><GalleryAdmin /></Suspense>} />
             <Route path="trips" element={<Suspense fallback={<PageLoader />}><TripsAdmin /></Suspense>} />
             <Route path="bookings" element={<Suspense fallback={<PageLoader />}><BookingsAdmin /></Suspense>} />
+            <Route path="custom-trip-requests" element={<Suspense fallback={<PageLoader />}><CustomTripRequestsAdmin /></Suspense>} />
             <Route path="accommodations" element={<Suspense fallback={<PageLoader />}><AccommodationsAdmin /></Suspense>} />
             <Route path="blog" element={<Suspense fallback={<PageLoader />}><BlogAdmin /></Suspense>} />
             <Route path="content" element={<Suspense fallback={<PageLoader />}><SiteContent /></Suspense>} />

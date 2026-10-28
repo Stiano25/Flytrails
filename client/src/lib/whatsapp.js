@@ -9,3 +9,10 @@ export function openWhatsapp(href, message) {
   if (win) win.opener = null;
   else window.location.href = url;
 }
+
+export function whatsappHrefForNumber(value, message = '') {
+  const digits = String(value || '').replace(/[^\d]/g, '');
+  if (!digits) return '';
+  const base = `https://wa.me/${digits}`;
+  return message ? `${base}?text=${encodeURIComponent(message)}` : base;
+}

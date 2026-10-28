@@ -26,7 +26,7 @@ const exploreLinks = [
   { to: '/trips', label: 'Trips', Icon: MapPinned },
   { to: '/accommodations', label: 'Accommodations', Icon: Building2 },
   { to: '/upcoming-trips', label: 'Upcoming', Icon: CalendarDays },
-  { to: '/custom-tours', label: 'Custom tours', Icon: Route },
+  { to: '/custom-tours', label: 'Custom Trip', Icon: Route },
 ];
 
 const discoverLinks = [

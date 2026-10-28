@@ -224,7 +224,7 @@ export default function Trips() {
       <NextStep
         title="Don’t see the one?"
         text="Private and custom trips are planned around your dates, budget and group."
-        secondary={{ to: '/custom-tours', label: 'Private & custom tours' }}
+        secondary={{ to: '/custom-tours', label: 'Custom Trip' }}
       />
     </div>
   );

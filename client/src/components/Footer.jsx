@@ -13,7 +13,7 @@ const COLUMNS = [
       { to: '/?plan=1', label: 'Trip finder' },
       { to: '/trips', label: 'All trips' },
       { to: '/upcoming-trips', label: 'Upcoming departures' },
-      { to: '/custom-tours', label: 'Private & custom tours' },
+      { to: '/custom-tours', label: 'Custom Trip' },
       { to: '/accommodations', label: 'Stays' },
     ],
   },

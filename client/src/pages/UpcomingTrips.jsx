@@ -123,7 +123,7 @@ export default function UpcomingTrips() {
         )}
       </section>
 
-      <NextStep title="None of these dates work?" text="Private trips run on your dates, with your group." secondary={{ to: '/custom-tours', label: 'Private & custom tours' }} />
+      <NextStep title="None of these dates work?" text="Private trips run on your dates, with your group." secondary={{ to: '/custom-tours', label: 'Custom Trip' }} />
     </div>
   );
 }
