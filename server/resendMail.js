@@ -240,7 +240,7 @@ export async function sendAdminCustomTripAlert(request) {
 
   const from = process.env.RESEND_FROM || 'Flytrails <no-reply@info.flytrailstravels.com>';
   const to = (process.env.ADMIN_NOTIFICATION_EMAIL || 'info@flytrailstravels.com').trim();
-  const siteOrigin = (process.env.PUBLIC_SITE_URL || process.env.VITE_PUBLIC_SITE_URL || 'https://flytrailstravels.com').replace(/\/$/, '');
+  const siteOrigin = (process.env.PUBLIC_SITE_URL || 'https://flytrailstravels.com').replace(/\/$/, '');
   const adminUrl = `${siteOrigin}/admin/custom-trip-requests`;
   const resend = new Resend(apiKey);
   const details = [
