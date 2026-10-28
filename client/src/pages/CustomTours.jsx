@@ -9,7 +9,6 @@ import PageHeader from '../components/site/PageHeader.jsx';
 
 const inputClass = 'mt-1.5 w-full rounded-xl border border-brand-dark/15 bg-white px-3.5 py-3 text-[15px] text-brand-dark transition placeholder:text-brand-dark/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25';
 const labelClass = 'text-sm font-semibold text-brand-dark';
-const WHEN_TEXT = { next3: 'Within the next 3 months', next6: 'Within the next 6 months', flexible: 'Flexible dates' };
 const services = [
   ['Corporate trips', 'Team-building safaris and executive retreats.', Building2],
   ['Family safaris', 'Kid-friendly pacing and family rooms.', UserRound],
@@ -17,11 +16,6 @@ const services = [
   ['Honeymoons', 'Beach and bush combinations made for two.', Heart],
   ['Transfers', 'Reliable airport and hotel pickups.', CarFront],
 ];
-
-function monthLabel(value) {
-  const match = /^(\d{4})-(\d{2})$/.exec(value || '');
-  return match ? new Date(Number(match[1]), Number(match[2]) - 1, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) : '';
-}
 
 export default function CustomTours() {
   const [searchParams] = useSearchParams();
@@ -32,9 +26,11 @@ export default function CustomTours() {
   const [form, setForm] = useState(() => ({
     name: '', email: '', phone: '',
     tripType: tripTypes.some((t) => t.value === searchParams.get('type')) ? searchParams.get('type') : '',
-    destination: '', travelDates: monthLabel(searchParams.get('month')) || WHEN_TEXT[searchParams.get('when')] || '',
+    destination: '',
     adults: searchParams.get('group') || '2', children: '0', budget: '', specialRequests: '',
   }));
+  const [dateStart, setDateStart] = useState('');
+  const [dateEnd, setDateEnd] = useState('');
   const whatsappHref = useWhatsappLink();
   const fromFinder = ['type', 'month', 'when', 'group'].some((key) => searchParams.has(key));
 
@@ -52,9 +48,18 @@ export default function CustomTours() {
   async function handleSubmit(event) {
     event.preventDefault();
     setError('');
+    if (!dateStart || !dateEnd) {
+      setError('Please choose both a start date and an end date.');
+      return;
+    }
+    if (dateEnd < dateStart) {
+      setError('The end date must be on or after the start date.');
+      return;
+    }
+    const travelDates = `${dateStart} to ${dateEnd}`;
     setSubmitting(true);
     try {
-      const result = await api.submitCustomTrip({ ...form, customerPhone: normalizeWhatsAppNumber(form.phone) });
+      const result = await api.submitCustomTrip({ ...form, travelDates, customerPhone: normalizeWhatsAppNumber(form.phone) });
       setSent(result.referenceNumber);
     } catch (submitError) {
       setError(submitError.message || 'We could not submit your request. Please try again.');
@@ -96,7 +101,33 @@ export default function CustomTours() {
               <label className="flex flex-col text-sm"><span className={labelClass}>WhatsApp number</span><input required name="phone" type="tel" autoComplete="tel" placeholder="e.g. 0712 345 678" value={form.phone} onChange={handleChange} className={inputClass} /><span className="mt-1 text-xs text-brand-dark/55">We use this to send your quotation directly to you.</span></label>
               <label className="flex flex-col text-sm"><span className={labelClass}>Trip type</span><select required name="tripType" value={form.tripType} onChange={handleChange} className={inputClass}><option value="">Select</option>{tripTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}</select></label>
               <label className="flex flex-col text-sm"><span className={labelClass}>Destination or region</span><input required name="destination" value={form.destination} onChange={handleChange} placeholder="e.g. Maasai Mara and Diani" className={inputClass} /></label>
-              <label className="flex flex-col text-sm"><span className={labelClass}>Travel dates or flexibility</span><input required name="travelDates" value={form.travelDates} onChange={handleChange} placeholder="e.g. 12–19 October 2026" className={inputClass} /></label>
+              <fieldset className="flex flex-col text-sm sm:col-span-2">
+                <legend className={labelClass}>Travel dates</legend>
+                <div className="mt-1.5 grid gap-3 sm:grid-cols-2">
+                  <label className="flex flex-col text-xs font-medium text-brand-dark/70">
+                    Start date
+                    <input
+                      required
+                      type="date"
+                      value={dateStart}
+                      onChange={(event) => setDateStart(event.target.value)}
+                      min={new Date().toISOString().slice(0, 10)}
+                      className={inputClass}
+                    />
+                  </label>
+                  <label className="flex flex-col text-xs font-medium text-brand-dark/70">
+                    End date
+                    <input
+                      required
+                      type="date"
+                      value={dateEnd}
+                      onChange={(event) => setDateEnd(event.target.value)}
+                      min={dateStart || new Date().toISOString().slice(0, 10)}
+                      className={inputClass}
+                    />
+                  </label>
+                </div>
+              </fieldset>
               <div className="grid grid-cols-2 gap-3">
                 <label className="flex flex-col text-sm"><span className={labelClass}>Adults</span><input required min="1" type="number" name="adults" value={form.adults} onChange={handleChange} className={inputClass} /></label>
                 <label className="flex flex-col text-sm"><span className={labelClass}>Children</span><input min="0" type="number" name="children" value={form.children} onChange={handleChange} className={inputClass} /></label>
