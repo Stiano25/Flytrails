@@ -379,32 +379,17 @@ export const api = {
   },
 
   async submitCustomTrip(form) {
-    const name = String(form.name || '').trim();
-    const email = String(form.email || '').trim().toLowerCase();
-    const phone = String(form.phone || '').trim();
-    const adults = Number(form.adults);
-    const children = Number(form.children || 0);
-    if (name.length < 2) throw new Error('Please enter your full name.');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Please enter a valid email address.');
-    if (phone.length < 7) throw new Error('Please enter a valid WhatsApp number.');
-    if (!Number.isInteger(adults) || adults < 1) throw new Error('Please enter at least one adult traveler.');
-    if (!Number.isInteger(children) || children < 0) throw new Error('Children count cannot be negative.');
-    const referenceNumber = `CT-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
-    const { error } = await supabase.from('custom_trip_requests').insert({
-      reference_number: referenceNumber,
-      customer_name: name,
-      customer_email: email,
-      customer_phone: phone,
-      trip_type: form.tripType || null,
-      destination: String(form.destination || '').trim() || null,
-      travel_dates: String(form.travelDates || '').trim() || null,
-      adults,
-      children,
-      budget: form.budget || null,
-      special_requests: String(form.specialRequests || '').trim() || null,
+    const res = await fetch('/api/custom-trips', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...form,
+        phone: form.customerPhone || form.phone,
+      }),
     });
-    if (error) throw new Error(error.message);
-    return { success: true, referenceNumber };
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Could not submit your Custom Trip request.');
+    return data;
   },
 
   async initiateMpesaBooking({ tripId, customerName, customerEmail, customerPhone, slots }) {

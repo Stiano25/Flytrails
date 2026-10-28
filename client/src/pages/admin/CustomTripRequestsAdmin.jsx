@@ -7,6 +7,15 @@ import { whatsappHrefForNumber } from '../../lib/whatsapp.js';
 const statuses = ['new', 'under_review', 'quote_draft', 'quote_sent', 'customer_confirmed', 'customer_declined', 'closed'];
 const money = (value) => new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', maximumFractionDigits: 0 }).format(Number(value) || 0);
 const emptyItem = () => ({ description: '', quantity: 1, unitPrice: 0 });
+const DEFAULT_QUOTE_TERMS = `Payment instructions:
+Please pay via M-Pesa:
+Paybill number: 1370907
+Account number: Enter your mobile phone number
+
+For any inquiries, call 0113714222 or email info@flytrailstravels.com.
+
+Availability and pricing are subject to confirmation. Prices are in KES and taxes are included.`;
+const emptyQuote = () => ({ validityDate: '', itinerary: '', inclusions: '', exclusions: '', terms: DEFAULT_QUOTE_TERMS });
 
 function printQuote(request, quote, items) {
   const rows = items.map((item) => `<tr><td>${escapeHtml(item.description)}</td><td>${item.quantity}</td><td>${money(item.unitPrice)}</td><td>${money(item.quantity * item.unitPrice)}</td></tr>`).join('');
@@ -28,7 +37,7 @@ export default function CustomTripRequestsAdmin() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [quote, setQuote] = useState({ validityDate: '', itinerary: '', inclusions: '', exclusions: '', terms: '' });
+  const [quote, setQuote] = useState(emptyQuote);
   const [items, setItems] = useState([emptyItem()]);
 
   const load = useCallback(async () => {
@@ -45,7 +54,7 @@ export default function CustomTripRequestsAdmin() {
   function openRequest(request) {
     const latest = request.quotes?.[request.quotes.length - 1];
     setSelected(request);
-    setQuote(latest ? { validityDate: latest.validityDate || '', itinerary: latest.itinerary, inclusions: latest.inclusions, exclusions: latest.exclusions, terms: latest.terms } : { validityDate: '', itinerary: '', inclusions: '', exclusions: '', terms: '' });
+    setQuote(latest ? { validityDate: latest.validityDate || '', itinerary: latest.itinerary, inclusions: latest.inclusions, exclusions: latest.exclusions, terms: latest.terms || DEFAULT_QUOTE_TERMS } : emptyQuote());
     setItems(latest?.items?.length ? latest.items : [emptyItem()]);
   }
 

@@ -227,3 +227,66 @@ export async function sendAdminBookingAlert(booking) {
     return { ok: false, error: err.message };
   }
 }
+
+/**
+ * Sends a short alert when a customer submits a Custom Trip request.
+ */
+export async function sendAdminCustomTripAlert(request) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn('[resendMail] RESEND_API_KEY missing; skipping custom trip notification email.');
+    return { ok: false, error: 'RESEND_API_KEY not configured' };
+  }
+
+  const from = process.env.RESEND_FROM || 'Flytrails <no-reply@info.flytrailstravels.com>';
+  const to = (process.env.ADMIN_NOTIFICATION_EMAIL || 'info@flytrailstravels.com').trim();
+  const siteOrigin = (process.env.PUBLIC_SITE_URL || process.env.VITE_PUBLIC_SITE_URL || 'https://flytrailstravels.com').replace(/\/$/, '');
+  const adminUrl = `${siteOrigin}/admin/custom-trip-requests`;
+  const resend = new Resend(apiKey);
+  const details = [
+    ['Reference', request.reference_number],
+    ['Customer', request.customer_name],
+    ['Email', request.customer_email],
+    ['WhatsApp', request.customer_phone],
+    ['Trip type', request.trip_type || 'Not specified'],
+    ['Destination', request.destination || 'Not specified'],
+    ['Travel dates', request.travel_dates || 'Not specified'],
+    ['Travelers', `${request.adults} adult(s), ${request.children} child(ren)`],
+    ['Budget', request.budget || 'Not specified'],
+  ];
+  const rows = details.map(([label, value]) => `
+    <tr>
+      <td style="padding: 7px 0; color: #64748b; font-size: 14px; width: 35%;">${escapeHtml(label)}</td>
+      <td style="padding: 7px 0; color: #0f172a; font-size: 14px; font-weight: 600;">${escapeHtml(value)}</td>
+    </tr>
+  `).join('');
+
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1e293b;">
+      <h2 style="color: #0f172a; margin-bottom: 8px;">New Custom Trip Request</h2>
+      <p style="color: #64748b; margin-top: 0;">A customer has submitted a trip request that needs your review.</p>
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">${rows}</table>
+      <p style="margin: 24px 0;">
+        <a href="${escapeHtml(adminUrl)}" style="display: inline-block; background: #f97316; color: #ffffff; padding: 12px 18px; border-radius: 8px; text-decoration: none; font-weight: 700;">Review Custom Trip</a>
+      </p>
+      <p style="font-size: 13px; color: #64748b;"><strong>Special requests:</strong><br>${escapeHtml(request.special_requests || 'None')}</p>
+    </div>
+  `.trim();
+
+  try {
+    const { error } = await resend.emails.send({
+      from,
+      to,
+      subject: `New Custom Trip Request: ${request.customer_name} (${request.reference_number})`,
+      html,
+    });
+    if (error) {
+      console.warn('[resendMail] Error sending custom trip notification:', error.message);
+      return { ok: false, error: error.message };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error('[resendMail] Exception sending custom trip notification:', err);
+    return { ok: false, error: err.message };
+  }
+}
