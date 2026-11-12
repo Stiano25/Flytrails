@@ -1,7 +1,7 @@
 import { useId, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronDown, MessageCircle, Search } from 'lucide-react';
-import { FAQ_GROUPS, FALLBACK_FAQS, groupFor } from '../../data/faqs.js';
+import { FAQ_GROUPS, FALLBACK_FAQS, fromAdminFaq } from '../../data/faqs.js';
 import { WHATSAPP_URL } from '../../config.js';
 
 const ring = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
@@ -27,17 +27,19 @@ function Action({ action }) {
 /**
  * FAQs as a guide rather than a wall: questions grouped by the stage a traveller is at, a search box,
  * one answer open at a time, and every answer ending in the next useful step. Uses the admin FAQs when
- * there are any, otherwise answers restated from the site's published terms. `only` limits it to one group.
+ * there are any, otherwise the built-in answers in data/faqs.js. `only` limits it to one group.
  */
-export default function FaqGuide({ faqs, only, title = 'Questions, answered', accent = 'before you ask' }) {
+export default function FaqGuide({ faqs, loading = false, only, title = 'Questions, answered', accent = 'before you ask' }) {
   const items = useMemo(() => {
-    const fromAdmin = (faqs || []).map((f) => ({ group: groupFor(f.question), q: f.question, a: f.answer, action: { label: 'Plan my trip', to: '/?plan=1' } }));
+    const fromAdmin = (faqs || []).map(fromAdminFaq);
     const list = fromAdmin.length ? fromAdmin : FALLBACK_FAQS;
     return only ? list.filter((f) => f.group === only) : list;
   }, [faqs, only]);
 
   const groups = FAQ_GROUPS.filter((g) => items.some((f) => f.group === g.id));
-  const [group, setGroup] = useState(groups[0]?.id);
+  const [picked, setGroup] = useState(null);
+  // The FAQ list arrives after the first render, so the chosen topic may not exist in it; fall back to the first one.
+  const group = groups.some((g) => g.id === picked) ? picked : groups[0]?.id;
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(0);
   const baseId = useId();
@@ -47,7 +49,7 @@ export default function FaqGuide({ faqs, only, title = 'Questions, answered', ac
     ? items.filter((f) => `${f.q} ${f.a}`.toLowerCase().includes(q))
     : items.filter((f) => only || f.group === group);
 
-  if (!items.length) return null;
+  if (loading || !items.length) return null;
 
   return (
     <section aria-labelledby={`${baseId}-title`} className="bg-white py-16 md:py-20">
@@ -106,7 +108,7 @@ export default function FaqGuide({ faqs, only, title = 'Questions, answered', ac
                 const expanded = open === i;
                 const id = `${baseId}-${i}`;
                 return (
-                  <li key={f.q}>
+                  <li key={f.id || f.q}>
                     <h3>
                       <button
                         type="button"

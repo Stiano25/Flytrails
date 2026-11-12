@@ -4,6 +4,7 @@ import PageHeader from '../components/site/PageHeader.jsx';
 import FaqGuide from '../components/site/FaqGuide.jsx';
 import JoinFreeForm from '../components/site/JoinFreeForm.jsx';
 import NextStep from '../components/site/NextStep.jsx';
+import { useFaqs } from '../hooks/useApi.js';
 
 const tiers = [
   {
@@ -44,6 +45,7 @@ const joinLink = (tier) => `${WHATSAPP_URL}?text=${encodeURIComponent(`Hi Flytra
 
 /** Membership: the three tiers side by side, each with a real way to join, then the membership questions. */
 export default function Membership() {
+  const { data: faqsData, loading: faqsLoading } = useFaqs();
   return (
     <div>
       <PageHeader
@@ -98,7 +100,7 @@ export default function Membership() {
         <p className="mt-6 text-center text-sm text-brand-dark/55">Paid memberships are activated within 24 hours of payment by M-Pesa or bank transfer.</p>
       </section>
 
-      <FaqGuide only="membership" title="Membership" accent="questions" />
+      <FaqGuide faqs={faqsData} loading={faqsLoading} only="membership" title="Membership" accent="questions" />
 
       <NextStep title="Members travel first." text="Plan your next trip and we’ll apply your member rate." />
     </div>

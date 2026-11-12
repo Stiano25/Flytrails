@@ -99,6 +99,9 @@ function mapFaq(row) {
     id: row.id,
     question: row.question,
     answer: row.answer,
+    category: row.category || '',
+    linkLabel: row.link_label || '',
+    linkUrl: row.link_url || '',
     isActive: row.is_active,
     sortOrder: row.sort_order ?? 0,
   };
@@ -704,8 +707,11 @@ export const adminApi = {
 
   async upsertFaq(faq) {
     const row = {
-      question: faq.question,
-      answer: faq.answer,
+      question: String(faq.question || '').trim(),
+      answer: String(faq.answer || '').trim(),
+      category: faq.category || null,
+      link_label: String(faq.linkLabel || '').trim() || null,
+      link_url: String(faq.linkUrl || '').trim() || null,
       is_active: faq.isActive !== false,
       sort_order: Number(faq.sortOrder) || 0,
     };
@@ -718,6 +724,21 @@ export const adminApi = {
       .single();
     if (error) throw new Error(error.message);
     return mapFaq(data);
+  },
+
+  async insertFaqs(faqs) {
+    const rows = faqs.map((faq) => ({
+      question: faq.question,
+      answer: faq.answer,
+      category: faq.category || null,
+      link_label: faq.linkLabel || null,
+      link_url: faq.linkUrl || null,
+      is_active: faq.isActive !== false,
+      sort_order: Number(faq.sortOrder) || 0,
+    }));
+    const { data, error } = await supabase.from('faqs').insert(rows).select();
+    if (error) throw new Error(error.message);
+    return (data || []).map(mapFaq);
   },
 
   async deleteFaq(id) {
