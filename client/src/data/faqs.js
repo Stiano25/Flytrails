@@ -9,7 +9,7 @@ export const FAQ_GROUPS = [
 ];
 
 /**
- * Shown when the admin FAQ list is empty. Every answer restates what the site already publishes
+ * Shown when the admin FAQ list is empty (the faqs table is seeded with these, see supabase/migrations/faqs.sql). Every answer restates what the site already publishes
  * (Terms & Conditions, Custom tours and Membership pages); nothing new is promised here.
  * Each answer ends with the most useful next step.
  */
@@ -103,4 +103,40 @@ const GROUP_HINTS = [
 /** Admin FAQs don't carry a group, so place them by their wording. */
 export function groupFor(question) {
   return GROUP_HINTS.find(([, re]) => re.test(question))?.[0] || 'before';
+}
+
+const DEFAULT_ACTION = { label: 'Plan my trip', to: '/?plan=1' };
+
+/** Turn an admin link into a button: 'whatsapp', a site path (/trips) or a full URL. */
+export function faqAction(label, url) {
+  const link = String(url || '').trim();
+  if (!link) return label ? { ...DEFAULT_ACTION, label } : DEFAULT_ACTION;
+  const text = label || 'Learn more';
+  if (link.toLowerCase() === 'whatsapp') return { label: label || 'Chat on WhatsApp', href: WHATSAPP_URL };
+  if (/^(https?:|mailto:|tel:)/i.test(link)) return { label: text, href: link };
+  return { label: text, to: link.startsWith('/') ? link : `/${link}` };
+}
+
+/** Admin FAQ row → the shape FaqGuide renders. Uncategorised rows are placed by their wording. */
+export function fromAdminFaq(f) {
+  return {
+    id: f.id,
+    group: FAQ_GROUPS.some((g) => g.id === f.category) ? f.category : groupFor(f.question),
+    q: f.question,
+    a: f.answer,
+    action: faqAction(f.linkLabel, f.linkUrl),
+  };
+}
+
+/** The built-in FAQs in the admin's shape, for "Import built-in FAQs". */
+export function fallbackAsAdminFaqs() {
+  return FALLBACK_FAQS.map((f, i) => ({
+    question: f.q,
+    answer: f.a,
+    category: f.group,
+    linkLabel: f.action?.label || '',
+    linkUrl: f.action?.href === WHATSAPP_URL ? 'whatsapp' : f.action?.href || f.action?.to || '',
+    isActive: true,
+    sortOrder: i,
+  }));
 }

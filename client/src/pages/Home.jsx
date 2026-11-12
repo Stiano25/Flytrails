@@ -16,7 +16,7 @@ export default function Home() {
   const { data: tripsData } = useTrips();
   const { data: galleryData } = useGalleryImages();
   const { data: accommodationsData } = useAccommodations();
-  const { data: faqsData } = useFaqs();
+  const { data: faqsData, loading: faqsLoading } = useFaqs();
 
   return (
     <>
@@ -26,7 +26,7 @@ export default function Home() {
       <WhyFlytrails />
       <StaysPreview stays={accommodationsData} />
       <AlbumsTeaser images={galleryData} />
-      <FaqGuide faqs={faqsData} />
+      <FaqGuide faqs={faqsData} loading={faqsLoading} />
       <CommunitySection />
     </>
   );

@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react';
 import { adminApi } from '../../data/api.js';
 import ConfirmDialog from '../../components/admin/ConfirmDialog.jsx';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Download } from 'lucide-react';
+import { FAQ_GROUPS, fallbackAsAdminFaqs } from '../../data/faqs.js';
+
+const groupLabel = (id) => FAQ_GROUPS.find((g) => g.id === id)?.label || 'Auto';
 
 const emptyForm = {
   id: null,
   question: '',
   answer: '',
+  category: '',
+  linkLabel: '',
+  linkUrl: '',
   isActive: true,
   sortOrder: 0,
 };
@@ -19,6 +25,8 @@ export default function FaqsAdmin() {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [filter, setFilter] = useState('all');
 
   async function fetchItems() {
     setLoading(true);
@@ -45,6 +53,9 @@ export default function FaqsAdmin() {
       id: item.id,
       question: item.question,
       answer: item.answer,
+      category: item.category || '',
+      linkLabel: item.linkLabel || '',
+      linkUrl: item.linkUrl || '',
       isActive: item.isActive,
       sortOrder: item.sortOrder ?? 0,
     });
@@ -68,7 +79,7 @@ export default function FaqsAdmin() {
           next[idx] = saved;
           return next;
         }
-        return [saved, ...prev].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+        return [...prev, saved].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
       });
       closeForm();
     } catch (err) {
@@ -77,6 +88,28 @@ export default function FaqsAdmin() {
       setSaving(false);
     }
   }
+
+  // Copy the FAQs the site shows by default into the table (skipping any question that's already there), so they can be edited.
+  async function importBuiltIn() {
+    const existing = new Set(items.map((x) => x.question.trim().toLowerCase()));
+    const missing = fallbackAsAdminFaqs().filter((f) => !existing.has(f.question.trim().toLowerCase()));
+    if (!missing.length) {
+      alert('All built-in FAQs are already in the list.');
+      return;
+    }
+    const offset = items.reduce((m, x) => Math.max(m, x.sortOrder ?? 0), -1) + 1;
+    setImporting(true);
+    try {
+      const added = await adminApi.insertFaqs(missing.map((f, i) => ({ ...f, sortOrder: offset + i })));
+      setItems((prev) => [...prev, ...added].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)));
+    } catch (err) {
+      alert('Failed to import: ' + err.message);
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  const shown = filter === 'all' ? items : items.filter((x) => (x.category || '') === filter);
 
   async function confirmDelete() {
     setDeleting(true);
@@ -96,8 +129,20 @@ export default function FaqsAdmin() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-slate-800">FAQs</h1>
-          <p className="mt-1 text-slate-500">Manage frequently asked questions shown on the home page.</p>
+          <p className="mt-1 text-slate-500">
+            Questions shown on the home page (all topics) and the Membership page (Membership topic). While this list is empty the site shows its built-in FAQs.
+          </p>
         </div>
+        <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={importBuiltIn}
+          disabled={importing || loading}
+          className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+        >
+          <Download className="h-4 w-4" />
+          {importing ? 'Importing…' : 'Import built-in FAQs'}
+        </button>
         <button
           type="button"
           onClick={openNew}
@@ -106,7 +151,23 @@ export default function FaqsAdmin() {
           <Plus className="h-4 w-4" />
           Add FAQ
         </button>
+        </div>
       </div>
+
+      {!loading && items.length > 0 && (
+        <div className="mt-6 flex flex-wrap gap-2">
+          {[{ id: 'all', label: 'All' }, ...FAQ_GROUPS, { id: '', label: 'Auto' }].map((g) => (
+            <button
+              key={g.id || 'auto'}
+              type="button"
+              onClick={() => setFilter(g.id)}
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${filter === g.id ? 'bg-primary text-accent' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+            >
+              {g.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <p className="mt-8 text-slate-400">Loading…</p>
@@ -117,13 +178,14 @@ export default function FaqsAdmin() {
               <tr className="border-b border-slate-100 bg-slate-50 text-left">
                 <th className="px-4 py-3 font-semibold text-slate-500">Question</th>
                 <th className="hidden px-4 py-3 font-semibold text-slate-500 md:table-cell">Answer</th>
+                <th className="hidden px-4 py-3 font-semibold text-slate-500 sm:table-cell">Topic</th>
                 <th className="px-4 py-3 font-semibold text-slate-500">Order</th>
                 <th className="px-4 py-3 font-semibold text-slate-500">Status</th>
                 <th className="px-4 py-3 font-semibold text-slate-500">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {items.map((item) => (
+              {shown.map((item) => (
                 <tr key={item.id} className="hover:bg-slate-50">
                   <td className="max-w-sm px-4 py-3">
                     <p className="line-clamp-2 font-medium text-slate-800">{item.question}</p>
@@ -131,6 +193,7 @@ export default function FaqsAdmin() {
                   <td className="hidden max-w-xl px-4 py-3 text-slate-600 md:table-cell">
                     <p className="line-clamp-2">{item.answer}</p>
                   </td>
+                  <td className="hidden px-4 py-3 text-slate-500 sm:table-cell">{groupLabel(item.category)}</td>
                   <td className="px-4 py-3 text-slate-500">{item.sortOrder}</td>
                   <td className="px-4 py-3">
                     <span
@@ -146,6 +209,7 @@ export default function FaqsAdmin() {
                       <button
                         type="button"
                         onClick={() => openEdit(item)}
+                        aria-label="Edit FAQ"
                         className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-100"
                       >
                         <Pencil className="h-4 w-4" />
@@ -153,6 +217,7 @@ export default function FaqsAdmin() {
                       <button
                         type="button"
                         onClick={() => setDeleteId(item.id)}
+                        aria-label="Delete FAQ"
                         className="rounded-lg border border-red-100 p-1.5 text-red-400 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -165,8 +230,11 @@ export default function FaqsAdmin() {
           </table>
 
           {items.length === 0 && (
-            <p className="py-12 text-center text-slate-400">No FAQs yet — add your first one.</p>
+            <p className="py-12 text-center text-slate-400">
+              No FAQs yet. Use “Import built-in FAQs” to edit the ones the site shows now, or add your own.
+            </p>
           )}
+          {items.length > 0 && shown.length === 0 && <p className="py-12 text-center text-slate-400">No FAQs in this topic.</p>}
         </div>
       )}
 
@@ -205,6 +273,40 @@ export default function FaqsAdmin() {
                   className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-slate-800"
                 />
               </label>
+              <label className="block text-sm">
+                <span className="font-semibold text-slate-600">Topic</span>
+                <select
+                  value={form.category}
+                  onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-slate-800"
+                >
+                  <option value="">Auto (guess from the question)</option>
+                  {FAQ_GROUPS.map((g) => (
+                    <option key={g.id} value={g.id}>{g.label}</option>
+                  ))}
+                </select>
+              </label>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block text-sm">
+                  <span className="font-semibold text-slate-600">Button text</span>
+                  <input
+                    value={form.linkLabel}
+                    placeholder="Plan my trip"
+                    onChange={(e) => setForm((f) => ({ ...f, linkLabel: e.target.value }))}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-slate-800"
+                  />
+                </label>
+                <label className="block text-sm">
+                  <span className="font-semibold text-slate-600">Button link</span>
+                  <input
+                    value={form.linkUrl}
+                    placeholder="/trips, https://… or whatsapp"
+                    onChange={(e) => setForm((f) => ({ ...f, linkUrl: e.target.value }))}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-slate-800"
+                  />
+                </label>
+              </div>
+              <p className="-mt-2 text-xs text-slate-400">Leave the link empty to point to the trip planner.</p>
               <div className="flex flex-wrap gap-4">
                 <label className="flex items-center gap-2 text-sm text-slate-700">
                   <input
